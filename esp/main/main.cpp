@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#include <cstdint>
 
 uint8_t redLed = 14;
 
