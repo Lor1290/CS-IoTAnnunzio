@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS iot_db;
-USE iot_db;
+CREATE DATABASE IF NOT EXISTS CS_IOT;
+USE CS_IOT;
 
-CREATE TABLE Users (
+CREATE TABLE USERS (
     id            INT AUTO_INCREMENT PRIMARY KEY,
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE Users (
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE Devices (
+CREATE TABLE DEVICES (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(255) NOT NULL,
     location        VARCHAR(255),
@@ -22,7 +22,7 @@ CREATE TABLE Devices (
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE Sensors (
+CREATE TABLE SENSORS (
     id            INT AUTO_INCREMENT PRIMARY KEY,
     device_id     INT          NOT NULL,
     type          VARCHAR(20)  NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE Sensors (
     FOREIGN KEY (device_id) REFERENCES Devices(id)
 );
 
-CREATE TABLE SensorReadings (
+CREATE TABLE SENSORSREADING (
     id        INT AUTO_INCREMENT PRIMARY KEY,
     sensor_id INT          NOT NULL,
     value     DECIMAL(10,2) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE SensorReadings (
     FOREIGN KEY (sensor_id) REFERENCES Sensors(id)
 );
 
-CREATE TABLE Alerts (
+CREATE TABLE ALERTS (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     sensor_id       INT          NOT NULL,
     triggered_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -53,7 +53,7 @@ CREATE TABLE Alerts (
     FOREIGN KEY (acknowledged_by) REFERENCES Users(id)
 );
 
-CREATE TABLE AuditLog (
+CREATE TABLE AUDITLOG (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT,
     action     TEXT         NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE AuditLog (
     FOREIGN KEY (user_id) REFERENCES Users(id)
 );
 
-CREATE TABLE Sessions (
+CREATE TABLE SESSIONS (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT          NOT NULL,
     token_hash VARCHAR(255) NOT NULL UNIQUE,
