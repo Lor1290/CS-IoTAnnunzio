@@ -4,7 +4,7 @@
 <br/>
 <br/>
 <p align="center">
-  <img src="./data/icon.png" width=250 alt="Logo">
+  <img src="./images/icon.png" width=250 alt="Logo">
   
 </p>
 
