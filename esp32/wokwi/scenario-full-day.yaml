@@ -1,0 +1,105 @@
+################################
+### Condizioni casa simulata ###
+########### Normale ############
+################################
+
+version: 1
+author: 'lor1290'
+name: 'casa simulata - condizioni normali'
+
+steps:
+
+  ### Mattina ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 19.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 58.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 120
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.05
+  - delay: 3000ms
+
+  ### Giorno ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 23.5
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 50.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 900
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.1
+  - delay: 3000ms
+
+  ### Pomeriggio ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 26.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 44.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 1300
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.15
+  - delay: 3000ms
+
+  ### Sera ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 21.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 57.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 80
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.08
+  - delay: 3000ms
+
+  ### Notte ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 17.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 67.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 4
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.03
+  - delay: 3000ms

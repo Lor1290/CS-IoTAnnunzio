@@ -1,0 +1,97 @@
+################################
+### Condizioni casa simulata ###
+########### Notte ##############
+################################
+
+version: 1
+author: 'lor1290'
+name: 'casa simulata - notte'
+
+steps:
+
+  ### Tardo pomeriggio ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 20.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 60.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 45
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.07
+  - delay: 3000ms
+
+  ### Prima serata ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 18.5
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 65.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 8
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.04
+  - delay: 3000ms
+
+  ### Mezza notte ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 16.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 72.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 2
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.02
+  - delay: 3000ms
+
+  ### Pre-alba ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 15.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 75.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 1
+  - delay: 3000ms
+
+  ### Alba ###
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 60
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 16.5
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 68.0
+  - delay: 3000ms

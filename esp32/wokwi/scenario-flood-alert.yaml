@@ -1,0 +1,73 @@
+################################
+### Condizioni casa simulata ###
+######### Allagamento ##########
+################################
+
+version: 1
+author: 'lor1290'
+name: 'casa simulata - allagamento'
+
+steps:
+
+  ### Condizioni iniziali ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 21.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 55.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 400
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.05
+  - delay: 3000ms
+
+  ### L'umidità inizia ad aumentare ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 72.0
+  - delay: 2000ms
+
+  ### Umidità critica ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 88.0
+  - delay: 2000ms
+
+  ### Allagamento in corso ###
+  # TODO: water_sensor non è supportato negli scenari YAML
+  # attivalo manualmente nella simulazione (water_sensor)
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 95.0
+  - delay: 5000ms
+
+  ### Intervento: acqua rimossa ###
+  # disattivalo manualmente nella simulazione (water_sensor)
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 75.0
+  - delay: 2000ms
+
+  ### Ritorno alle condizioni iniziali ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 60.0
+  - delay: 2000ms
+
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 55.0
+  - delay: 2000ms

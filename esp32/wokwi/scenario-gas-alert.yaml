@@ -1,0 +1,72 @@
+################################
+### Condizioni casa simulata ###
+########## Gas Alert ###########
+################################
+
+version: 1
+author: 'lor1290'
+name: 'casa simulata - perdita di gas'
+
+steps:
+
+  ### Condizioni iniziali ###
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: temperature
+      value: 22.0
+  - set-control:
+      part-id: temperature_humidity_sensor
+      control: humidity
+      value: 52.0
+  - set-control:
+      part-id: light_sensor
+      control: lux
+      value: 300
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.05
+  - delay: 2000ms
+
+  ### Perdita di gas inizia lentamente ###
+  # TODO: wind_sensor usato come stand-in per gas_sensor
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.25
+  - delay: 1500ms
+
+  ### Gas aumenta ###
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.5
+  - delay: 1500ms
+
+  ### Livello critico ###
+  ### Serial.println("[!] ALLARME GAS RILEVATO!") --> soglia > 0.6
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.85
+  - delay: 4000ms
+
+  ### Finestra aperta ###
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.55
+  - delay: 1500ms
+
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.3
+  - delay: 1500ms
+
+  ### Ritorno alle condizioni iniziali ###
+  - set-control:
+      part-id: wind_sensor
+      control: value
+      value: 0.05
+  - delay: 2000ms
