@@ -2,25 +2,30 @@ name: Wokwi Simulation → Database
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # runs every 10 minutes
-  workflow_dispatch:         # allows manual trigger from GitHub UI
+    - cron: '*/10 * * * *'   # ogni 10 minuti
+  workflow_dispatch:         # trigger manuale da GitHub UI
 
 jobs:
   simulate:
     runs-on: ubuntu-latest
-    timeout-minutes: 8       # kills the job before the 10 min cron fires again
+    timeout-minutes: 8       # termina prima che riparta il cronometro
 
     env:
-      MYSQLHOST:     ${{ secrets.MYSQLHOST }}
-      MYSQLPORT:     ${{ secrets.MYSQLPORT }}
-      MYSQLDATABASE: ${{ secrets.MYSQLDATABASE }}
-      MYSQLUSER:     ${{ secrets.MYSQLUSER }}
-      MYSQLPASSWORD: ${{ secrets.MYSQLPASSWORD }}
+      MYSQLHOST:      ${{ secrets.MYSQLHOST }}
+      MYSQLPORT:      ${{ secrets.MYSQLPORT }}
+      MYSQLDATABASE:  ${{ secrets.MYSQLDATABASE }}
+      MYSQLUSER:      ${{ secrets.MYSQLUSER }}
+      MYSQLPASSWORD:  ${{ secrets.MYSQLPASSWORD }}
+      WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
+      
+      ESP32_SERIAL_ID: ESP32-001
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install Python Dependencies
+        run: pip install mysql-connector-python
       - name: Install PlatformIO
         run: pip install platformio
 
@@ -33,11 +38,23 @@ jobs:
           curl -L https://wokwi.com/ci/install.sh | sh
           echo "$HOME/.wokwi/bin" >> $GITHUB_PATH
 
-      - name: Install Python Dependencies
-        run: pip install mysql-connector-python
 
-      - name: Run Simulation
+      - name: Run scenario-full-day
         working-directory: esp32/wokwi
-        run: |
-          wokwi-cli --timeout 540000 . | python3 serial_to_db.py
-        # 540000 ms = 9 minutes, just under the job timeout
+        run: wokwi-cli --timeout 90000 --scenario scenario-full-day.yaml . | python3 ../../serial_to_db.py
+        continue-on-error: true   
+
+      - name: Run scenario-flood-alert
+        working-directory: esp32/wokwi
+        run: wokwi-cli --timeout 90000 --scenario scenario-flood-alert.yaml . | python3 ../../serial_to_db.py
+        continue-on-error: true
+
+      - name: Run scenario-gas-alert
+        working-directory: esp32/wokwi
+        run: wokwi-cli --timeout 90000 --scenario scenario-gas-alert.yaml . | python3 ../../serial_to_db.py
+        continue-on-error: true
+
+      - name: Run scenario-night
+        working-directory: esp32/wokwi
+        run: wokwi-cli --timeout 90000 --scenario scenario-night.yaml . | python3 ../../serial_to_db.py
+        continue-on-error: true
