@@ -1,0 +1,43 @@
+name: Wokwi Simulation → Database
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # runs every 10 minutes
+  workflow_dispatch:         # allows manual trigger from GitHub UI
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8       # kills the job before the 10 min cron fires again
+
+    env:
+      MYSQLHOST:     ${{ secrets.MYSQLHOST }}
+      MYSQLPORT:     ${{ secrets.MYSQLPORT }}
+      MYSQLDATABASE: ${{ secrets.MYSQLDATABASE }}
+      MYSQLUSER:     ${{ secrets.MYSQLUSER }}
+      MYSQLPASSWORD: ${{ secrets.MYSQLPASSWORD }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build Firmware
+        working-directory: esp32/wokwi
+        run: pio run
+
+      - name: Install wokwi-cli
+        run: |
+          curl -L https://wokwi.com/ci/install.sh | sh
+          echo "$HOME/.wokwi/bin" >> $GITHUB_PATH
+
+      - name: Install Python Dependencies
+        run: pip install mysql-connector-python
+
+      - name: Run Simulation
+        working-directory: esp32/wokwi
+        run: |
+          wokwi-cli --timeout 540000 . | python3 serial_to_db.py
+        # 540000 ms = 9 minutes, just under the job timeout

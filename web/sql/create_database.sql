@@ -30,36 +30,36 @@ CREATE TABLE SENSORS (
     unit          VARCHAR(50),
     min_threshold DECIMAL(10,2),
     max_threshold DECIMAL(10,2),
-    FOREIGN KEY (device_id) REFERENCES Devices(id)
+    FOREIGN KEY (device_id) REFERENCES DEVICES(id)
 );
 
 CREATE TABLE SENSORSREADING (
     id        INT AUTO_INCREMENT PRIMARY KEY,
-    sensor_id INT          NOT NULL,
+    sensor_id INT           NOT NULL,
     value     DECIMAL(10,2) NOT NULL,
-    timestamp DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sensor_id) REFERENCES Sensors(id)
+    timestamp DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sensor_id) REFERENCES SENSORS(id)
 );
 
 CREATE TABLE ALERTS (
     id              INT AUTO_INCREMENT PRIMARY KEY,
-    sensor_id       INT          NOT NULL,
-    triggered_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sensor_id       INT         NOT NULL,
+    triggered_at    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     resolved_at     DATETIME,
-    severity        VARCHAR(10)  NOT NULL,
-    message         TEXT         NOT NULL,
+    severity        VARCHAR(10) NOT NULL,
+    message         TEXT        NOT NULL,
     acknowledged_by INT,
-    FOREIGN KEY (sensor_id)       REFERENCES Sensors(id),
-    FOREIGN KEY (acknowledged_by) REFERENCES Users(id)
+    FOREIGN KEY (sensor_id)       REFERENCES SENSORS(id),
+    FOREIGN KEY (acknowledged_by) REFERENCES USERS(id)
 );
 
 CREATE TABLE AUDITLOG (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT,
-    action     TEXT         NOT NULL,
+    action     TEXT        NOT NULL,
     ip_address VARCHAR(45),
-    created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(id)
+    created_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES USERS(id)
 );
 
 CREATE TABLE SESSIONS (
@@ -68,5 +68,5 @@ CREATE TABLE SESSIONS (
     token_hash VARCHAR(255) NOT NULL UNIQUE,
     expires_at DATETIME     NOT NULL,
     created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(id)
+    FOREIGN KEY (user_id) REFERENCES USERS(id)
 );
