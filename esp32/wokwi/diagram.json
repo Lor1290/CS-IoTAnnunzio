@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "author": "lor1290",
+  "editor": "wokwi",
+  
+  "serialMonitor": {
+    "collapse": false,
+    "convertEol": false,
+    "display": "auto",
+    "newline": "lf"
+  },
+  
+  "parts": [
+    { 
+      "type": "board-esp32-devkit-c-v4", 
+      "id": "esp32", 
+      "top": 285, 
+      "left": 1000, 
+      "attrs": {} 
+    },
+    {
+      "type": "wokwi-ntc-temperature-sensor",
+      "id": "temp_sens",
+      "top": 150,
+      "left": 346,
+      "rotate": 90,
+      "attrs": { "temperature": "36.5" }
+    },
+    {
+      "type": "wokwi-breadboard",
+      "id": "breadboard",
+      "top": 300,
+      "left": 300,
+      "rotate": 0,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    ["breadboard:tp.1", "breadboard:bp.1", "red", ["h5", "*", "h-5"]],
+    ["breadboard:tn.2", "breadboard:bn.2", "black", ["h5", "*", "h-5"]],
+    ["breadboard:10t.e", "breadboard:tp.10", "red", []],
+    ["esp32:TX", "$serialMonitor:RX", "", []],
+    ["esp32:RX", "$serialMonitor:TX", "", []],
+    ["esp32:33", "breadboard:9t.d", "yellow", []],
+    ["esp32:5V", "breadboard:bp.50", "red", []],
+    ["esp32:GND.1", "breadboard:bn.49", "black", []],
+    ["temp_sens:GND", "breadboard:tn.8", "black", []],
+    ["temp_sens:OUT", "breadboard:9t.c", "yellow", []],
+    ["temp_sens:VCC", "breadboard:10t.b", "red", []]
+  ]
+}
