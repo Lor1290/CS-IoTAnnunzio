@@ -145,7 +145,7 @@ def insert_alert(cur, sensor_id, message, severity):
         return
     
     cur.execute(
-        "INSERT INTO ALERTS (sensor_id, severity, message) VALUES (%s, %s, %s)",
+        "INSERT INTO ALERTS (sensor_id, severity, message, 1) VALUES (%s, %s, %s)",
         (sensor_id, severity, message)
     )
     
