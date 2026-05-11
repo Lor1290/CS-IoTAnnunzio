@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace IoTDashboard.Services;
+namespace root.Services;
 
 /// <summary>
 /// Clients connect to this hub and join groups named "device_{id}" or "sensor_{id}".

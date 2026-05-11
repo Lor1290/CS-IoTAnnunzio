@@ -1,8 +1,8 @@
+using root.Models;
 using System.Security.Cryptography;
-using IoTDashboard.Models;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
-namespace IoTDashboard.Services;
+namespace root.Services;
 
 public class AuthService
 {

@@ -1,4 +1,4 @@
-namespace IoTDashboard.Models;
+namespace root.Models;
 
 // ── USERS ──────────────────────────────────────────────────────────────────
 public class User

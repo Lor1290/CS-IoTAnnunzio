@@ -1,8 +1,8 @@
 using Dapper;
+using root.Models;
 using MySqlConnector;
-using IoTDashboard.Models;
 
-namespace IoTDashboard.Services;
+namespace root.Services;
 
 public class DatabaseService
 {

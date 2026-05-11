@@ -1,7 +1,7 @@
 {
-  "name": "IoT Monitor",
-  "short_name": "IoT Monitor",
-  "description": "Dashboard per il monitoraggio dei dispositivi IoT",
+  "name": "root",
+  "short_name": "root",
+  "description": "Dashboard IoT",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
