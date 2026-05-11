@@ -1,5 +1,5 @@
-.pio/build/esp32dev/src/main.cpp.o: src/main.cpp \
- lib/DHT\ sensor\ library/DHT.h \
+.pio/build/esp32dev/lib132/Keypad/Key.cpp.o: lib/Keypad/src/Key.cpp \
+ lib/Keypad/src/Key.h \
  /home/polinomio/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  /home/polinomio/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \
  /home/polinomio/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/freertos/FreeRTOS.h \
@@ -133,9 +133,4 @@
  /home/polinomio/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/spi_flash/include/esp_spi_flash_counters.h \
  /home/polinomio/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  /home/polinomio/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
- /home/polinomio/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
- /home/polinomio/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src/Wire.h \
- /home/polinomio/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal.h \
- lib/Keypad/src/Keypad.h lib/Keypad/src/Key.h \
- lib/Adafruit\ BMP085\ Library/Adafruit_BMP085.h \
- lib/Adafruit\ BusIO/Adafruit_I2CDevice.h
+ /home/polinomio/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h
