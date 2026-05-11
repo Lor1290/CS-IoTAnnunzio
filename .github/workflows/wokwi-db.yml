@@ -26,6 +26,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: pip install mysql-connector-python
+
       - name: Install PlatformIO
         run: pip install platformio
 
@@ -41,20 +42,20 @@ jobs:
 
       - name: Run scenario-full-day
         working-directory: esp32/wokwi
-        run: wokwi-cli --timeout 90000 --scenario scenario-full-day.yaml . | python3 ../../serial_to_db.py
+        run: wokwi-cli --timeout 90000 --scenario scenario-full-day.yaml . | python3 write-db.py
         continue-on-error: true   
 
       - name: Run scenario-flood-alert
         working-directory: esp32/wokwi
-        run: wokwi-cli --timeout 90000 --scenario scenario-flood-alert.yaml . | python3 ../../serial_to_db.py
+        run: wokwi-cli --timeout 90000 --scenario scenario-flood-alert.yaml . | python3 write-db.py
         continue-on-error: true
 
       - name: Run scenario-gas-alert
         working-directory: esp32/wokwi
-        run: wokwi-cli --timeout 90000 --scenario scenario-gas-alert.yaml . | python3 ../../serial_to_db.py
+        run: wokwi-cli --timeout 90000 --scenario scenario-gas-alert.yaml . | python3 write-db.py
         continue-on-error: true
 
       - name: Run scenario-night
         working-directory: esp32/wokwi
-        run: wokwi-cli --timeout 90000 --scenario scenario-night.yaml . | python3 ../../serial_to_db.py
+        run: wokwi-cli --timeout 90000 --scenario scenario-night.yaml . | python3 write-db.py
         continue-on-error: true
