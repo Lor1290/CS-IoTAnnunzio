@@ -1,0 +1,118 @@
+@page "/alerts"
+@inject AuthService Auth
+@inject DatabaseService Db
+@inject NavigationManager Nav
+@inject ProtectedLocalStorage Storage
+
+<PageTitle>Alert — IoT Monitor</PageTitle>
+
+@if (!_ready)
+{
+    <div class="loading-screen"><div class="spinner-lg"></div></div>
+}
+else
+{
+    <div class="page-content">
+        <div class="page-header">
+            <h1>Alert</h1>
+            <div class="header-actions">
+                <label class="toggle-label">
+                    <input type="checkbox" @bind="_onlyActive" @bind:after="Reload" />
+                    Solo attivi
+                </label>
+            </div>
+        </div>
+
+        @if (!_alerts.Any())
+        {
+            <div class="empty-state">
+                <span class="empty-icon">✅</span>
+                <p>Nessun alert @(_onlyActive ? "attivo" : "").</p>
+            </div>
+        }
+        else
+        {
+            <div class="alert-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Severità</th>
+                            <th>Dispositivo</th>
+                            <th>Sensore</th>
+                            <th>Messaggio</th>
+                            <th>Data</th>
+                            <th>Stato</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var alert in _alerts)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="severity-badge @alert.Severity.ToLower()">
+                                        @alert.Severity.ToUpper()
+                                    </span>
+                                </td>
+                                <td><strong>@alert.DeviceName</strong></td>
+                                <td>@alert.SensorLabel</td>
+                                <td class="alert-msg-cell">@alert.Message</td>
+                                <td class="mono">@alert.TriggeredAt.ToString("dd/MM HH:mm")</td>
+                                <td>
+                                    @if (alert.ResolvedAt.HasValue)
+                                    {
+                                        <span class="status-pill online">Risolto</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill offline">Aperto</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!alert.ResolvedAt.HasValue && Auth.CurrentUser != null)
+                                    {
+                                        <button class="btn btn-sm btn-warning"
+                                                @onclick="() => Acknowledge(alert.Id)">
+                                            Chiudi
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _ready     = false;
+    private bool _onlyActive = true;
+    private List<Alert> _alerts = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var ok = await Auth.RestoreSessionAsync(Storage);
+        if (!ok) { Nav.NavigateTo("/login"); return; }
+
+        await Reload();
+        _ready = true;
+        StateHasChanged();
+    }
+
+    private async Task Reload()
+    {
+        _alerts = await Db.GetAlertsAsync(_onlyActive);
+        StateHasChanged();
+    }
+
+    private async Task Acknowledge(int alertId)
+    {
+        if (Auth.CurrentUser == null) return;
+        await Db.AcknowledgeAlertAsync(alertId, Auth.CurrentUser.Id);
+        await Db.LogActionAsync(Auth.CurrentUser.Id, $"ACKNOWLEDGE_ALERT:{alertId}");
+        await Reload();
+    }
+}

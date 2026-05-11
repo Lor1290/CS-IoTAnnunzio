@@ -1,0 +1,99 @@
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ProtectedLocalStorage Storage
+
+<PageTitle>Login — IoT Dashboard</PageTitle>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">⚡</div>
+            <h1>IoT Monitor</h1>
+            <p>Accedi per monitorare i tuoi dispositivi</p>
+        </div>
+
+        <div class="login-body">
+            @if (_error != null)
+            {
+                <div class="alert alert-error">@_error</div>
+            }
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" class="form-control"
+                       placeholder="tu@esempio.com"
+                       @bind="_email" @bind:event="oninput"
+                       @onkeydown="OnKeyDown" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-password">
+                    <input id="password"
+                           type="@(_showPass ? "text" : "password")"
+                           class="form-control"
+                           placeholder="••••••••"
+                           @bind="_password" @bind:event="oninput"
+                           @onkeydown="OnKeyDown" />
+                    <button class="toggle-pass" @onclick="() => _showPass = !_showPass">
+                        @(_showPass ? "🙈" : "👁")
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block"
+                    disabled="@_loading"
+                    @onclick="DoLogin">
+                @if (_loading) { <span class="spinner"></span> } else { <span>Accedi</span> }
+            </button>
+        </div>
+
+        <div class="login-footer">
+            <small>Sistema IoT — Annunzio</small>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _email    = "";
+    private string _password = "";
+    private string? _error;
+    private bool _loading  = false;
+    private bool _showPass = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // if already logged in, redirect
+            var ok = await Auth.RestoreSessionAsync(Storage);
+            if (ok) Nav.NavigateTo("/");
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await DoLogin();
+    }
+
+    private async Task DoLogin()
+    {
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "Inserisci email e password.";
+            return;
+        }
+
+        _loading = true;
+        _error   = null;
+
+        var (ok, err) = await Auth.LoginAsync(_email, _password, Storage);
+        _loading = false;
+
+        if (ok)
+            Nav.NavigateTo("/");
+        else
+            _error = err;
+    }
+}
