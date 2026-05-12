@@ -8,8 +8,10 @@
   
 </p>
 
-### Author
-- [@Lor1290](https://www.github.com/Lor1290)
 
-### Collaborator
-- [@Poppyy07](https://github.com/Poppyy07)<br/>
+# Chi siamo? 
+Il nostro team
+
+### Author
+- [@Lor1290](https://www.github.com/Lor1290) <br />
+- [@Poppyy07](https://github.com/Poppyy07) <br/>

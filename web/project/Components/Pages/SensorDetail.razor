@@ -1,0 +1,133 @@
+@page "/sensor/{SensorId:int}"
+@inject SensorService SensorSvc
+@inject NavigationManager Nav
+@inject IHttpContextAccessor Http
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<PageTitle>@_sensor?.Label — IoT Annunzio</PageTitle>
+
+@if (!_authenticated) { return; }
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="() => Nav.NavigateTo("/")" />
+    <MudText Typo="Typo.h5">@(_sensor?.Label ?? "Sensore")</MudText>
+    <MudSpacer />
+    <MudChip Color="Color.Primary" Size="Size.Small">@(_sensor?.Type)</MudChip>
+</MudStack>
+
+@* ── Current value card ── *@
+@if (_latest is not null)
+{
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="2" Class="pa-6 text-center">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">VALORE ATTUALE</MudText>
+                <MudText Typo="Typo.h3" Color="Color.Primary">@_latest.Value.ToString("F2")</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">@_sensor?.Unit</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="2" Class="pa-6 text-center">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">MIN / MAX (soglia)</MudText>
+                <MudText Typo="Typo.h5">@(_sensor?.MinThreshold?.ToString("F1") ?? "—") / @(_sensor?.MaxThreshold?.ToString("F1") ?? "—")</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@_sensor?.Unit</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="2" Class="pa-6 text-center">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">ULTIMO AGGIORNAMENTO</MudText>
+                <MudText Typo="Typo.h6">@_latest.Timestamp.ToLocalTime().ToString("HH:mm:ss")</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@_latest.Timestamp.ToLocalTime().ToString("dd MMM yyyy")</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@* ── Line chart (last 50 readings) ── *@
+<MudPaper Elevation="2" Class="pa-4 mb-6">
+    <MudText Typo="Typo.h6" Class="mb-4">Storico ultime @_readings.Count letture</MudText>
+
+    @if (_readings.Any())
+    {
+        <div style="height:300px; position:relative">
+            <canvas id="sensorChart_@SensorId"></canvas>
+        </div>
+    }
+    else
+    {
+        <MudText Color="Color.Secondary">Nessun dato disponibile.</MudText>
+    }
+</MudPaper>
+
+@* ── Raw data table ── *@
+<MudPaper Elevation="2" Class="pa-4">
+    <MudText Typo="Typo.h6" Class="mb-4">Dati grezzi</MudText>
+    <MudTable Items="_readings" Dense="true" Hover="true" Striped="true">
+        <HeaderContent>
+            <MudTh>Timestamp</MudTh>
+            <MudTh>Valore</MudTh>
+            <MudTh>Unità</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</MudTd>
+            <MudTd>@context.Value.ToString("F2")</MudTd>
+            <MudTd>@_sensor?.Unit</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    [Parameter] public int SensorId { get; set; }
+
+    bool _authenticated;
+    project.Models.Sensor? _sensor;
+    project.Models.SensorReading? _latest;
+    List<project.Models.SensorReading> _readings = new();
+
+    HubConnection? _hub;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = Http.HttpContext?.Session.GetString("user_email");
+        if (string.IsNullOrEmpty(email)) { Nav.NavigateTo("/login"); return; }
+        _authenticated = true;
+
+        var all = await SensorSvc.GetSensorsAsync();
+        _sensor   = all.FirstOrDefault(s => s.Id == SensorId);
+        _readings = await SensorSvc.GetReadingsAsync(SensorId, 50);
+        _latest   = _readings.LastOrDefault();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !_authenticated) return;
+
+        _hub = new HubConnectionBuilder()
+            .WithUrl(Nav.ToAbsoluteUri("/hubs/sensors"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hub.On<Dictionary<int, project.Models.SensorReading>, List<project.Models.Alert>>(
+            "ReceiveUpdate",
+            async (latest, _) =>
+            {
+                if (latest.TryGetValue(SensorId, out var r))
+                {
+                    _latest = r;
+                    // Append to chart data, keep last 50
+                    _readings.Add(r);
+                    if (_readings.Count > 50) _readings.RemoveAt(0);
+                    await InvokeAsync(StateHasChanged);
+                }
+            });
+
+        await _hub.StartAsync();
+        await _hub.InvokeAsync("Subscribe");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hub is not null) await _hub.DisposeAsync();
+    }
+}

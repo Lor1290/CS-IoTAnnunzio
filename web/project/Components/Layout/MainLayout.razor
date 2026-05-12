@@ -1,0 +1,70 @@
+@inherits LayoutComponentBase
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="() => _drawerOpen = !_drawerOpen" />
+        <MudIcon Icon="@Icons.Material.Filled.Sensors" Class="mr-2" />
+        <MudText Typo="Typo.h6">IoT Annunzio</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@(_isDark ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit"
+                       OnClick="ToggleTheme" />
+        @if (_isLoggedIn)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Logout"
+                           Color="Color.Inherit"
+                           OnClick="Logout" />
+        }
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.subtitle1">Menu</MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    MudThemeProvider _themeProvider = null!;
+    bool _isDark;
+    bool _drawerOpen = true;
+    bool _isLoggedIn;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDark     = await _themeProvider.GetSystemDarkModeAsync();
+            _isLoggedIn = !string.IsNullOrEmpty(Http.HttpContext?.Session.GetString("user_email"));
+            StateHasChanged();
+        }
+    }
+
+    void ToggleTheme() => _isDark = !_isDark;
+
+    void Logout()
+    {
+        Http.HttpContext?.Session.Clear();
+        Nav.NavigateTo("/login");
+    }
+}

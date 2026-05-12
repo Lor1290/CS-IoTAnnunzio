@@ -1,0 +1,76 @@
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject IHttpContextAccessor Http
+@rendermode InteractiveServer
+
+<PageTitle>Login — IoT Annunzio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Elevation="4" Class="pa-8">
+        <MudStack AlignItems="AlignItems.Center" Class="mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.Sensors" Color="Color.Primary" Size="Size.Large" />
+            <MudText Typo="Typo.h5" Align="Align.Center">IoT Annunzio</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Accedi per visualizzare i dati</MudText>
+        </MudStack>
+
+        @if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+        }
+
+        <MudTextField @bind-Value="_email"
+                      Label="Email"
+                      Variant="Variant.Outlined"
+                      InputType="InputType.Email"
+                      Class="mb-4"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Email" />
+
+        <MudTextField @bind-Value="_password"
+                      Label="Password"
+                      Variant="Variant.Outlined"
+                      InputType="@(_showPwd ? InputType.Text : InputType.Password)"
+                      Class="mb-6"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@(_showPwd ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                      OnAdornmentClick="() => _showPwd = !_showPwd" />
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   Size="Size.Large"
+                   OnClick="HandleLogin"
+                   Disabled="_loading">
+            @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Accedi
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    string _email    = string.Empty;
+    string _password = string.Empty;
+    string? _error;
+    bool _loading;
+    bool _showPwd;
+
+    async Task HandleLogin()
+    {
+        _error   = null;
+        _loading = true;
+
+        var user = await Auth.ValidateCredentialsAsync(_email, _password);
+        if (user is null)
+        {
+            _error   = "Email o password non corretti.";
+            _loading = false;
+            return;
+        }
+
+        await Auth.SendTwoFactorCodeAsync(user.Email, user.FullName);
+
+        // Pass email via query string to 2FA page
+        Nav.NavigateTo($"/verify?email={Uri.EscapeDataString(user.Email)}&name={Uri.EscapeDataString(user.FullName)}");
+    }
+}
