@@ -10,10 +10,10 @@
 @if (!_authenticated) { return; }
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
-    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="() => Nav.NavigateTo("/")" />
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Nav.NavigateTo("/")' />
     <MudText Typo="Typo.h5">@(_sensor?.Label ?? "Sensore")</MudText>
     <MudSpacer />
-    <MudChip Color="Color.Primary" Size="Size.Small">@(_sensor?.Type)</MudChip>
+    <MudChip T="string" Color="Color.Primary" Size="Size.Small">@(_sensor?.Type)</MudChip>
 </MudStack>
 
 @* ── Current value card ── *@

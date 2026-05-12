@@ -72,22 +72,25 @@
 
     HubConnection? _hub;
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (!firstRender) return;
+
         var email = Http.HttpContext?.Session.GetString("user_email");
-        if (string.IsNullOrEmpty(email)) { Nav.NavigateTo("/login"); return; }
+        if (string.IsNullOrEmpty(email)) 
+        { 
+            Nav.NavigateTo("/login", forceLoad: true); 
+            return; 
+        }
         _userName      = Http.HttpContext?.Session.GetString("user_name") ?? email;
         _authenticated = true;
 
         _sensors = await SensorSvc.GetSensorsAsync();
         _latest  = await SensorSvc.GetLatestReadingsAsync();
         _alerts  = await SensorSvc.GetActiveAlertsAsync();
-    }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender || !_authenticated) return;
+        StateHasChanged();
 
+        // existing hub setup below...
         _hub = new HubConnectionBuilder()
             .WithUrl(Nav.ToAbsoluteUri("/hubs/sensors"))
             .WithAutomaticReconnect()

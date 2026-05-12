@@ -18,13 +18,13 @@ public class SensorService {
         await using var r = await cmd.ExecuteReaderAsync();
         while (await r.ReadAsync())
             list.Add(new Sensor {
-                Id = r.GetInt32("id"),
-                DeviceId = r.GetInt32("device_id"),
-                Type = r.GetString("type"),
-                Label = r.GetString("label"),
-                Unit = r.IsDBNull(r.GetOrdinal("unit")) ? null : r.GetString("unit"),
-                MinThreshold = r.IsDBNull(r.GetOrdinal("min_threshold")) ? null : r.GetDecimal("min_threshold"),
-                MaxThreshold = r.IsDBNull(r.GetOrdinal("max_threshold")) ? null : r.GetDecimal("max_threshold"),
+                Id = r.GetInt32(r.GetOrdinal("id")),
+                DeviceId = r.GetInt32(r.GetOrdinal("device_id")),
+                Type = r.GetString(r.GetOrdinal("type")),
+                Label = r.GetString(r.GetOrdinal("label")),
+                Unit         = r.IsDBNull(r.GetOrdinal("unit")) ? null : r.GetString(r.GetOrdinal("unit")),
+                MinThreshold = r.IsDBNull(r.GetOrdinal("min_threshold")) ? null : r.GetDecimal(r.GetOrdinal("min_threshold")),
+                MaxThreshold = r.IsDBNull(r.GetOrdinal("max_threshold")) ? null : r.GetDecimal(r.GetOrdinal("max_threshold")),
             });
 
         return list;
@@ -48,14 +48,14 @@ public class SensorService {
         var cmd = new MySqlCommand(sql, con);
         await using var r = await cmd.ExecuteReaderAsync();
         while (await r.ReadAsync()) {
-            var sensorId = r.GetInt32("sensor_id");
+            var sensorId = r.GetInt32(r.GetOrdinal("sensor_id"));
             dict[sensorId] = new SensorReading {
                 SensorId    = sensorId,
-                Value       = r.GetDecimal("value"),
-                Timestamp   = r.GetDateTime("timestamp"),
-                SensorLabel = r.GetString("label"),
-                Unit        = r.IsDBNull(r.GetOrdinal("unit")) ? null : r.GetString("unit"),
-                Type        = r.GetString("type"),
+                Value = r.GetDecimal(r.GetOrdinal("value")),
+                Timestamp = r.GetDateTime(r.GetOrdinal("timestamp")),
+                SensorLabel = r.GetString(r.GetOrdinal("label")),
+                Unit = r.IsDBNull(r.GetOrdinal("unit")) ? null : r.GetString(r.GetOrdinal("unit")),
+                Type = r.GetString(r.GetOrdinal("type")),
             };
         }
 
@@ -76,10 +76,10 @@ public class SensorService {
         await using var r = await cmd.ExecuteReaderAsync();
         while (await r.ReadAsync())
             list.Add(new SensorReading {
-                Id        = r.GetInt32("id"),
-                SensorId  = r.GetInt32("sensor_id"),
-                Value     = r.GetDecimal("value"),
-                Timestamp = r.GetDateTime("timestamp"),
+                Id = r.GetInt32(r.GetOrdinal("id")),
+                SensorId = r.GetInt32(r.GetOrdinal("sensor_id")),
+                Value = r.GetDecimal(r.GetOrdinal("value")),
+                Timestamp = r.GetDateTime(r.GetOrdinal("timestamp")),
             });
 
         list.Reverse(); 
@@ -104,12 +104,12 @@ public class SensorService {
         await using var r = await cmd.ExecuteReaderAsync();
         while (await r.ReadAsync())
             list.Add(new Alert {
-                Id = r.GetInt32("id"),
-                SensorId = r.GetInt32("sensor_id"),
-                TriggeredAt = r.GetDateTime("triggered_at"),
-                Severity = r.GetString("severity"),
-                Message = r.GetString("message"),
-                SensorLabel = r.GetString("label"),
+                Id = r.GetInt32(r.GetOrdinal("id")),
+                SensorId = r.GetInt32(r.GetOrdinal("sensor_id")),
+                TriggeredAt = r.GetDateTime(r.GetOrdinal("triggered_at")),
+                Severity = r.GetString(r.GetOrdinal("severity")),
+                Message = r.GetString(r.GetOrdinal("message")),
+                SensorLabel = r.GetString(r.GetOrdinal("label")),
             });
 
         return list;

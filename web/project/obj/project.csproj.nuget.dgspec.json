@@ -62,6 +62,10 @@
               "target": "Package",
               "version": "[1.*, )"
             },
+            "Microsoft.AspNetCore.SignalR.Client": {
+              "target": "Package",
+              "version": "[9.*, )"
+            },
             "MudBlazor": {
               "target": "Package",
               "version": "[7.*, )"

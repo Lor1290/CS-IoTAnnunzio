@@ -1,7 +1,6 @@
 @inherits LayoutComponentBase
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
-@rendermode InteractiveServer
 
 <MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDark" />
 <MudPopoverProvider />
@@ -54,7 +53,7 @@
     {
         if (firstRender)
         {
-            _isDark     = await _themeProvider.GetSystemDarkModeAsync();
+            _isDark = true;
             _isLoggedIn = !string.IsNullOrEmpty(Http.HttpContext?.Session.GetString("user_email"));
             StateHasChanged();
         }

@@ -28,15 +28,15 @@ public class AuthService {
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
 
-        var hash = reader.GetString("password_hash");
+        var hash = reader.GetString(reader.GetOrdinal("password_hash"));
         if (!BCrypt.Net.BCrypt.Verify(password, hash)) return null;
 
         return new User {
-            Id = reader.GetInt32("id"),
-            Email = reader.GetString("email"),
-            FullName = reader.GetString("full_name"),
-            Role = reader.GetString("role"),
-            IsVerified = reader.GetBoolean("is_verified"),
+            Id = reader.GetInt32(reader.GetOrdinal("id")),
+            Email = reader.GetString(reader.GetOrdinal("email")),
+            FullName = reader.GetString(reader.GetOrdinal("full_name")),
+            Role = reader.GetString(reader.GetOrdinal("role")),
+            IsVerified = reader.GetBoolean(reader.GetOrdinal("is_verified")),
         };
     }
 
@@ -45,16 +45,24 @@ public class AuthService {
         var expiry = DateTime.UtcNow.AddMinutes(5);
         _codes[email] = (code, expiry);
 
-        await _email.SendAsync (
-            to: email,
-            subject: "IoT Annunzio — Codice di verifica",
-            body: $"""
-                   <p>Ciao <b>{fullName}</b>,</p>
-                   <p>Il tuo codice di accesso è:</p>
-                   <h2 style="letter-spacing:8px">{code}</h2>
-                   <p>Il codice scade tra <b>5 minuti</b>.</p>
-                   """
-        );
+        Console.WriteLine($"Invio codice 2FA a {email}: {code}");
+
+        try {
+            await _email.SendAsync (
+                to: email,
+                subject: "IoT Annunzio — Codice di verifica",
+                body: $"""
+                       <p>Ciao <b>{fullName}</b>,</p>
+                       <p>Il tuo codice di accesso è:</p>
+                       <h2 style="letter-spacing:8px">{code}</h2>
+                       <p>Il codice scade tra <b>5 minuti</b>.</p>
+                       """
+            );
+            Console.WriteLine("Email 2FA inviata con successo.");
+        } catch (Exception ex) {
+            Console.WriteLine($"Errore nell'invio dell'email 2FA: {ex.Message}");
+            throw new Exception("Errore nell'invio del codice di verifica. Controlla la configurazione email.");
+        }
     }
 
     public bool VerifyTwoFactorCode(string email, string code) {

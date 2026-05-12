@@ -15,6 +15,7 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.*" />
     <PackageReference Include="MailKit" Version="4.*" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.*" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.*" />
   </ItemGroup>
 
   <ItemGroup>
