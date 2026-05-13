@@ -103,7 +103,7 @@
 @if (_success)
 {
     <MudAlert Severity="Severity.Success" Class="mt-4">
-        Utente creato con successo! Reindirizzamento...
+        Utente creato con successo!
     </MudAlert>
 }
 
@@ -142,8 +142,8 @@
         if (string.IsNullOrEmpty(err))
         {
             _success = true;
-            await Task.Delay(1500);
-            Nav.NavigateTo("/");
+            _form    = new();  
+            _loading = false;
         }
         else
         {

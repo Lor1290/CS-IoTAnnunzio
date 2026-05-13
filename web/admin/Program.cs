@@ -1,6 +1,6 @@
 using MudBlazor.Services;
-using admintool.Components;
-using admintool.Services;
+using admin.Components;
+using admin.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

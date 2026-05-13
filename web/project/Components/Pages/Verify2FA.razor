@@ -65,10 +65,7 @@
 
         if (Auth.VerifyTwoFactorCode(_email, _code.Trim()))
         {
-            // Store authenticated email in session
-            Http.HttpContext!.Session.SetString("user_email", _email);
-            Http.HttpContext!.Session.SetString("user_name",  name ?? _email);
-            Nav.NavigateTo("/");
+            Nav.NavigateTo($"/auth/session?email={Uri.EscapeDataString(_email)}&name={Uri.EscapeDataString(name ?? _email)}", forceLoad: true);
         }
         else
         {

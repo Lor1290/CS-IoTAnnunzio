@@ -77,9 +77,7 @@
             await Auth.SendTwoFactorCodeAsync(user.Email, user.FullName);
 
             Console.WriteLine("Codice inviato, navigazione a /verify");
-
-            // Pass email via query string to 2FA page
-            Nav.NavigateTo($"/verify?email={Uri.EscapeDataString(user.Email)}&name={Uri.EscapeDataString(user.FullName)}");
+            Nav.NavigateTo($"/verify?email={Uri.EscapeDataString(user.Email)}&name={Uri.EscapeDataString(user.FullName)}", forceLoad: true);
         } catch (Exception ex) {
             _error = ex.Message;
             _loading = false;

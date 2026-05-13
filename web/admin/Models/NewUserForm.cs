@@ -1,4 +1,4 @@
-namespace admintool.Models;
+namespace admin.Models;
 
 public class NewUserForm
 {

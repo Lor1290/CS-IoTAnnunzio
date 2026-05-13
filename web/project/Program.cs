@@ -24,6 +24,9 @@ builder.Services.AddScoped<SensorService>();
 builder.Services.AddSingleton<SensorBroadcastService>();
 builder.Services.AddHostedService(p => p.GetRequiredService<SensorBroadcastService>());
 
+builder.Services.AddRazorPages();
+
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -38,6 +41,7 @@ app.UseHttpsRedirection();
 app.UseSession();
 app.UseAntiforgery();
 
+app.MapRazorPages();
 app.MapStaticAssets();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

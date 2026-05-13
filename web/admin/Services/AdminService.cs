@@ -1,7 +1,7 @@
 using MySql.Data.MySqlClient;
-using admintool.Models;
+using admin.Models;
 
-namespace admintool.Services;
+namespace admin.Services;
 
 public class AdminService {
     private readonly string _conn;
@@ -58,15 +58,31 @@ public class AdminService {
             await cmdDev.ExecuteNonQueryAsync();
             var deviceId = (int)cmdDev.LastInsertedId;
 
-            var cmdProc = new MySqlCommand("CALL AddStandardSensors(@did)", con, tx);
-            cmdProc.Parameters.AddWithValue("@did", deviceId);
-            await cmdProc.ExecuteNonQueryAsync();
+            var cmdSensors = new MySqlCommand("""
+                INSERT INTO SENSORS (device_id, type, label, unit, min_threshold, max_threshold) VALUES
+                (@d, 'temperature', 'DHT22 Temperatura',  '°C',  -10.00,    50.00),
+                (@d, 'humidity',    'DHT22 Umidità',       '%',     0.00,   100.00),
+                (@d, 'temperature', 'BMP180 Temperatura', '°C',  -10.00,    50.00),
+                (@d, 'pressure',    'BMP180 Pressione',   'Pa', 90000.00, 110000.00),
+                (@d, 'temperature', 'NTC Temperatura',    '°C',  -10.00,    50.00),
+                (@d, 'light',       'Luminosità',         'lux',   0.00, 10000.00),
+                (@d, 'gas',         'Gas',                '',      0.00,     0.60),
+                (@d, 'wind',        'Vento',              '',      0.00,     1.00),
+                (@d, 'water',       'Acqua',              '',      0.00,     1.00)
+                """, con, tx);
+            cmdSensors.Parameters.AddWithValue("@d", deviceId);
+            await cmdSensors.ExecuteNonQueryAsync();
 
             await tx.CommitAsync();
             return string.Empty; 
         }
         catch (Exception ex) {
             await tx.RollbackAsync();
+            
+            if (ex.Message.Contains("Duplicate entry") && ex.Message.Contains("email"))
+                return $"Un utente con email '{form.Email}' esiste già.";
+            if (ex.Message.Contains("Duplicate entry") && ex.Message.Contains("esp32_serial_id"))
+                return $"Un dispositivo con Serial ID '{form.SerialId}' esiste già.";
             return ex.Message;
         }
     }

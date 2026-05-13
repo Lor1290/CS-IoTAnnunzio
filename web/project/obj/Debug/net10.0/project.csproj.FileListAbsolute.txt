@@ -123,3 +123,5 @@
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/project.pdb
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/project.genruntimeconfig.cache
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/ref/project.dll
+/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/project.RazorAssemblyInfo.cache
+/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/project.RazorAssemblyInfo.cs

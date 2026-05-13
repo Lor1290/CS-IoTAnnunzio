@@ -38,8 +38,7 @@ else
             <MudTd>@context.FullName</MudTd>
             <MudTd>@context.Email</MudTd>
             <MudTd>
-                <MudChip Size="Size.Small"
-                         Color="@(context.Role == "admin" ? Color.Warning : Color.Default)">
+                <MudChip T="string" Size="Size.Small" Color="@(context.Role == "admin" ? Color.Warning : Color.Default)">
                     @context.Role
                 </MudChip>
             </MudTd>
