@@ -1,50 +1,36 @@
-using MudBlazor.Services;
-
 using project.Components;
-using project.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace project;
 
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-builder.Services.AddMudServices();
-builder.Services.AddSignalR();
-
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(o =>
+public class Program
 {
-    o.IdleTimeout    = TimeSpan.FromMinutes(30);
-    o.Cookie.HttpOnly = true;
-    o.Cookie.IsEssential = true;
-});
-builder.Services.AddHttpContextAccessor();
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<EmailService>();
-builder.Services.AddScoped<SensorService>();
-builder.Services.AddSingleton<SensorBroadcastService>();
-builder.Services.AddHostedService(p => p.GetRequiredService<SensorBroadcastService>());
+        // Add services to the container.
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
 
-builder.Services.AddRazorPages();
+        var app = builder.Build();
 
+        // Configure the HTTP request pipeline.
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler("/Error");
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
+        }
 
-var app = builder.Build();
+        app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+        app.UseHttpsRedirection();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+        app.UseAntiforgery();
+
+        app.MapStaticAssets();
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+
+        app.Run();
+    }
 }
-
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-
-app.UseHttpsRedirection();
-app.UseSession();
-app.UseAntiforgery();
-
-app.MapRazorPages();
-app.MapStaticAssets();
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-
-app.MapHub<SensorHub>("/hubs/sensors");
-
-app.Run();

@@ -4,22 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MudBlazor" Version="7.*" />
-    <PackageReference Include="MySql.Data" Version="9.*" />
-    <PackageReference Include="BCrypt.Net-Next" Version="4.*" />
-    <PackageReference Include="MailKit" Version="4.*" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.*" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
-  </ItemGroup>
 
 </Project>
