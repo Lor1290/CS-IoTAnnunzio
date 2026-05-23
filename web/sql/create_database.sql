@@ -3,6 +3,7 @@ USE CS_IOT;
 
 CREATE TABLE USERS (
     id            INT AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(100) NOT NULL UNIQUE,
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     full_name     VARCHAR(255) NOT NULL,
@@ -14,12 +15,14 @@ CREATE TABLE USERS (
 
 CREATE TABLE DEVICES (
     id              INT AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT          NOT NULL UNIQUE,
     name            VARCHAR(255) NOT NULL,
     location        VARCHAR(255),
     esp32_serial_id VARCHAR(255) NOT NULL UNIQUE,
     status          VARCHAR(10)  NOT NULL DEFAULT 'offline',
     last_seen       DATETIME,
-    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES USERS(id)
 );
 
 CREATE TABLE SENSORS (

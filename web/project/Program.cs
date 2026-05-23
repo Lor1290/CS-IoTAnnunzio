@@ -1,4 +1,6 @@
 using project.Components;
+using project.Services;
+using Microsoft.Extensions.Options;
 
 namespace project;
 
@@ -9,6 +11,9 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+        builder.Services.AddSingleton<IEmailVerificationSender, EmailVerificationSender>();
+        builder.Services.AddSingleton<SharedUserStore>();
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 

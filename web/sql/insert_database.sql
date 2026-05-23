@@ -1,4 +1,4 @@
-USE railway;
+USE CS_IOT;
 
 -- ----------------------------------------
 --              USERS
@@ -7,37 +7,47 @@ USE railway;
 --    giulia@iot.local - Giulia1234!
 -- ----------------------------------------
 
-INSERT INTO USERS (email, password_hash, full_name, role, is_verified) VALUES
+INSERT INTO USERS (username, email, password_hash, full_name, role, is_verified) VALUES
 (
+    'admin',
     'admin@iot.local',
     '$2b$11$zO1OVlrDuLc67EtcFapOxO960XVs2fIUR/..wLnacQhPdb3baECnG',
     'Admin IoT',
     'admin',
     1
-),
+);
+SET @admin_user_id = LAST_INSERT_ID();
+
+INSERT INTO USERS (username, email, password_hash, full_name, role, is_verified) VALUES
 (
+    'mario',
     'mario@iot.local',
     '$2b$11$b.LKhRK8UtLEReLNUOmpI.T1HQMUgMEeEnBdckBISiSUC7j26ND/S',
     'Mario Rossi',
     'viewer',
     1
-),
+);
+SET @mario_user_id = LAST_INSERT_ID();
+
+INSERT INTO USERS (username, email, password_hash, full_name, role, is_verified) VALUES
 (
+    'giulia',
     'giulia@iot.local',
     '$2b$11$c.FQdGnkHbs/vAYMGCc56.RupVzKLNvD.GYrGALDAl.WyjShcGIUm',
     'Giulia Bianchi',
     'viewer',
     1
 );
+SET @giulia_user_id = LAST_INSERT_ID();
 
 
 -- --------------------------
 -- DEVICES  (one per user) --
 -- --------------------------
-INSERT INTO DEVICES (name, location, esp32_serial_id, status) VALUES
-('ESP32-Admin', 'Server Room', 'ESP32-001', 'online'),
-('ESP32-mario@iot.local',  'Home', 'ESP32-002', 'online'),
-('ESP32-giulia@iot.local', 'Home', 'ESP32-003', 'online');
+INSERT INTO DEVICES (user_id, name, location, esp32_serial_id, status) VALUES
+(@admin_user_id, 'ESP32-Admin', 'Server Room', 'ESP32-001', 'online'),
+(@mario_user_id,  'ESP32-Mario',  'Home', 'ESP32-002', 'online'),
+(@giulia_user_id, 'ESP32-Giulia', 'Home', 'ESP32-003', 'online');
 
 
 -- ─────────────────────────────────────────
@@ -63,20 +73,26 @@ END$$
 
 DELIMITER ;
 
-CALL AddStandardSensors(1);  -- admin's ESP32
-CALL AddStandardSensors(2);  -- mario's  ESP32
-CALL AddStandardSensors(3);  -- giulia's ESP32
+SELECT id INTO @admin_device_id FROM DEVICES WHERE user_id = @admin_user_id;
+SELECT id INTO @mario_device_id FROM DEVICES WHERE user_id = @mario_user_id;
+SELECT id INTO @giulia_device_id FROM DEVICES WHERE user_id = @giulia_user_id;
+
+CALL AddStandardSensors(@admin_device_id);  -- admin's ESP32
+CALL AddStandardSensors(@mario_device_id);  -- mario's  ESP32
+CALL AddStandardSensors(@giulia_device_id);  -- giulia's ESP32
 
 
 -- ─────────────────────────────────────────
 --  HOW TO ADD A NEW USER + DEVICE IN FUTURE
 --  Run these 3 statements in order:
 --
---  INSERT INTO USERS (email, password_hash, full_name, role, is_verified)
---  VALUES ('new@iot.local', '<bcrypt_hash>', 'New User', 'viewer', 1);
+--  INSERT INTO USERS (username, email, password_hash, full_name, role, is_verified)
+--  VALUES ('newuser', 'new@iot.local', '<bcrypt_hash>', 'New User', 'viewer', 1);
+--  SET @new_user_id = LAST_INSERT_ID();
 --
 --  INSERT INTO DEVICES (user_id, name, location, esp32_serial_id, status)
---  VALUES (LAST_INSERT_ID(), 'ESP32-New', 'Room X', 'WOKWI-ESP32-004', 'offline');
+--  VALUES (@new_user_id, 'ESP32-New', 'Room X', 'WOKWI-ESP32-004', 'offline');
+--  SET @new_device_id = LAST_INSERT_ID();
 --
---  CALL AddStandardSensors(LAST_INSERT_ID());
+--  CALL AddStandardSensors(@new_device_id);
 -- ─────────────────────────────────────────

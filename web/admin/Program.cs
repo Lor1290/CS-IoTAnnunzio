@@ -1,4 +1,5 @@
 using admin.Components;
+using admin.Services;
 
 namespace admin;
 
@@ -9,6 +10,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+        builder.Services.AddSingleton<SharedUserStore>();
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "d2HlW4eWE9U=",
+  "success": true,
+  "projectFilePath": "F:\\Courses\\PublicCourses\\CS-IoTAnnunzio\\web\\admin\\admin.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\massi\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.8\\microsoft.aspnetcore.app.internal.assets.10.0.8.nupkg.sha512"
+  ],
+  "logs": []
+}
