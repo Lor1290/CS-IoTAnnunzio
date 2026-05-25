@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "00W6zFn3vms=",
+  "dgSpecHash": "4bYrcT4j3ng=",
   "success": true,
-  "projectFilePath": "F:\\Courses\\PublicCourses\\CS-IoTAnnunzio\\web\\project\\project.csproj",
+  "projectFilePath": "/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/project.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\massi\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.8\\microsoft.aspnetcore.app.internal.assets.10.0.8.nupkg.sha512"
+    "/home/polinomio/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.4/microsoft.aspnetcore.app.internal.assets.10.0.4.nupkg.sha512",
+    "/home/polinomio/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.4/microsoft.aspnetcore.app.ref.10.0.4.nupkg.sha512"
   ],
   "logs": []
 }

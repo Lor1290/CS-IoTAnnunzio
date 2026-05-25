@@ -7,9 +7,6 @@ CREATE TABLE USERS (
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     full_name     VARCHAR(255) NOT NULL,
-    role          VARCHAR(10)  NOT NULL DEFAULT 'viewer',
-    totp_secret   VARCHAR(255),
-    is_verified   TINYINT(1)   NOT NULL DEFAULT 0,
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -18,10 +15,10 @@ CREATE TABLE DEVICES (
     user_id         INT          NOT NULL UNIQUE,
     name            VARCHAR(255) NOT NULL,
     location        VARCHAR(255),
-    esp32_serial_id VARCHAR(255) NOT NULL UNIQUE,
     status          VARCHAR(10)  NOT NULL DEFAULT 'offline',
     last_seen       DATETIME,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
     FOREIGN KEY (user_id) REFERENCES USERS(id)
 );
 
@@ -47,11 +44,11 @@ CREATE TABLE SENSORSREADING (
 CREATE TABLE ALERTS (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     sensor_id       INT         NOT NULL,
+    acknowledged_by INT,
     triggered_at    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     resolved_at     DATETIME,
     severity        VARCHAR(10) NOT NULL,
     message         TEXT        NOT NULL,
-    acknowledged_by INT,
     FOREIGN KEY (sensor_id)       REFERENCES SENSORS(id),
     FOREIGN KEY (acknowledged_by) REFERENCES USERS(id)
 );

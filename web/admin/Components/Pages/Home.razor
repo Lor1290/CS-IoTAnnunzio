@@ -1,39 +1,31 @@
 ﻿@page "/"
+
+@inject ISnackbar SnackBar;
 @inject SharedUserStore UserStore
 
-<PageTitle>Admin console</PageTitle>
+<PageTitle>ADMIN</PageTitle>
 
 <div class="admin-shell">
-	@if (!_isUnlocked)
-	{
+	@if (!_isUnlocked) {
 		<section class="login-stage">
 			<div class="login-card">
-				<p class="eyebrow">Ingresso di facciata</p>
-				<h1>Pannello admin</h1>
-				<p class="lead">Scrivi <strong>admin</strong> e la password corretta per sbloccare il pannello admin.</p>
+				<p class="eyebrow"><i>Dalla parola al dato, tutto è connesso</i></p>
+				<h1>Pannello Di Controllo</h1>
 
 				<div class="field-grid">
 					<label for="admin-name">Nome</label>
-					<input id="admin-name" class="form-control" @bind-value="_login.Username" @bind-value:event="oninput" placeholder="admin" />
+					<input id="admin-name" class="form-control" @bind-value="_login.Username" @bind-value:event="oninput" placeholder="example@gmail.com" />
 
 					<label for="admin-password">Password</label>
-					<input id="admin-password" class="form-control" type="password" @bind-value="_login.Password" @bind-value:event="oninput" placeholder="Password admin" />
+					<input id="admin-password" class="form-control" type="password" @bind-value="_login.Password" @bind-value:event="oninput" placeholder="adminPaSsWoRd123" />
 				</div>
 
 				<div class="button-row">
 					<button type="button" class="primary-button" @onclick="AttemptLogin">Accedi</button>
-					<span class="helper-text">L'accesso richiede nome admin e password corretta.</span>
 				</div>
-
-				@if (!string.IsNullOrWhiteSpace(_loginFeedback))
-				{
-					<div class="status-banner">@_loginFeedback</div>
-				}
 			</div>
 		</section>
-	}
-	else
-	{
+	} else {
 		<section class="admin-dashboard">
 			<header class="admin-hero">
 				<div>
@@ -44,19 +36,17 @@
 
 				<div class="hero-actions">
 					<div class="pill">Utenti: @_users.Count</div>
-					<div class="pill">Device: @(_users.Count(user => !string.IsNullOrWhiteSpace(user.DeviceSerialId)))</div>
 				</div>
 			</header>
 
 			<div class="admin-toolbar">
-				<input class="form-control search-input" @bind-value="_searchTerm" @bind-value:event="oninput" placeholder="Cerca username, email o device" />
+				<input class="form-control search-input" @bind-value="_searchTerm" @bind-value:event="oninput" placeholder="username, email o device" />
 				<button type="button" class="primary-button" @onclick="BeginCreate">Add</button>
 			</div>
 
 			<div class="admin-grid">
 				<div class="users-list">
-					@foreach (var user in FilteredUsers)
-					{
+					@foreach (var user in FilteredUsers) {
 						<article class="user-card @( _editingUserId == user.Id ? "is-selected" : string.Empty)">
 							<div class="user-card-header">
 								<div>
@@ -64,21 +54,12 @@
 									<h2>@user.FullName</h2>
 									<p class="muted">@user.Email</p>
 								</div>
-
-								<div class="status-stack">
-									<span class="status-dot @(user.Verified ? "online" : "offline")">@(user.Verified ? "verified" : "pending")</span>
-									<span class="status-dot neutral">@user.Role</span>
-								</div>
 							</div>
 
 							<div class="meta-grid">
 								<div>
 									<span>Device</span>
 									<strong>@user.DeviceName</strong>
-								</div>
-								<div>
-									<span>Seriale</span>
-									<strong>@user.DeviceSerialId</strong>
 								</div>
 								<div>
 									<span>Location</span>
@@ -92,13 +73,12 @@
 
 							<div class="card-actions">
 								<button type="button" class="secondary-button" @onclick="() => BeginEdit(user)">Modifica</button>
-								<button type="button" class="danger-button" @onclick="() => DeleteUser(user.Id)">Cancella</button>
+								<button type="button" class="danger-button"    @onclick="() => DeleteUser(user.Id)">Cancella</button>
 							</div>
 						</article>
 					}
 
-					@if (!FilteredUsers.Any())
-					{
+					@if (!FilteredUsers.Any()) {
 						<article class="empty-state">
 							<h2>Nessun utente trovato</h2>
 							<p>Prova con un altro username, un'altra email oppure aggiungi un nuovo record.</p>
@@ -122,32 +102,22 @@
 
 						<div class="field-grid compact">
 							<label>Username</label>
-							<InputText class="form-control" @bind-Value="_editor.Username" placeholder="utente01" />
+							<InputText class="form-control" @bind-Value="_editor.Username" placeholder="MarioRossi1975" />
 
 							<label>Nome completo</label>
 							<InputText class="form-control" @bind-Value="_editor.FullName" placeholder="Mario Rossi" />
 
 							<label>Email</label>
-							<InputText class="form-control" @bind-Value="_editor.Email" placeholder="utente@iot.local" />
-
-							<label>Ruolo</label>
-							<InputSelect class="form-select" @bind-Value="_editor.Role">
-								<option value="viewer">viewer</option>
-								<option value="admin">admin</option>
-								<option value="operator">operator</option>
-							</InputSelect>
+							<InputText class="form-control" @bind-Value="_editor.Email" placeholder="mario.rossi@gmail.com" />
 
 							<label>Nome device</label>
-							<InputText class="form-control" @bind-Value="_editor.DeviceName" placeholder="ESP32-Lab" />
+							<InputText class="form-control" @bind-Value="_editor.DeviceName" placeholder="ESP32-Mario Rossi" />
 
 							<label>Location</label>
-							<InputText class="form-control" @bind-Value="_editor.DeviceLocation" placeholder="Aula 2" />
-
-							<label>ESP32 serial</label>
-							<InputText class="form-control" @bind-Value="_editor.DeviceSerialId" placeholder="ESP32-004" />
+							<InputText class="form-control" @bind-Value="_editor.DeviceLocation" placeholder="Mario Rossi House" />
 
 							<label>Password account</label>
-							<InputText class="form-control" type="password" @bind-Value="_editor.Password" placeholder="Password con cui l'utente entrerà" />
+							<InputText class="form-control" type="password" @bind-Value="_editor.Password" placeholder="userPaSsWoRd123" />
 
 							<label>Stato device</label>
 							<InputSelect class="form-select" @bind-Value="_editor.DeviceStatus">
@@ -157,11 +127,6 @@
 							</InputSelect>
 						</div>
 
-						<label class="switch-row">
-							<InputCheckbox @bind-Value="_editor.Verified" />
-							<span>Account verificato</span>
-						</label>
-
 						<div class="button-row">
 							<button type="submit" class="primary-button">Salva</button>
 							<button type="button" class="secondary-button" @onclick="CancelEditor">Annulla</button>
@@ -169,118 +134,100 @@
 					</EditForm>
 				</aside>
 			</div>
-
-			@if (!string.IsNullOrWhiteSpace(_toast))
-			{
-				<div class="toast-banner">@_toast</div>
-			}
 		</section>
 	}
 </div>
 
 @code {
-	private const string AdminPassword = "Admin2026!";
-	private readonly AdminLoginModel _login = new();
-	private List<ManagedUser> _users = [];
-	private UserEditorModel _editor = CreateEmptyEditor();
-	private string _searchTerm = string.Empty;
-	private string? _loginFeedback;
-	private string? _toast;
-	private bool _isUnlocked;
-	private bool _isCreating = true;
 	private int _nextId = 4;
+	private bool _isUnlocked;
 	private int? _editingUserId;
+	private bool _isCreating = true;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_users = await LoadUsersAsync();
-		_nextId = _users.Count == 0 ? 1 : _users.Max(user => user.Id) + 1;
+	private const string AdminPassword = "Admin2026!";
+
+	private List<ManagedUser> _users = [];
+	private readonly AdminLoginModel _login = new();
+	
+	private string _searchTerm = string.Empty;
+	private UserEditorModel _editor = CreateEmptyEditor();
+	
+	protected override async Task OnInitializedAsync() {
+		try {
+			_users = await LoadUsersAsync();
+			_nextId = _users.Count == 0 ? 1 : _users.Max(user => user.Id) + 1;
+		} catch (Exception ex) {
+			SnackBar.Add($"Errore di connessione: {ex.Message}", Severity.Error);
+		}
 	}
 
 	private List<ManagedUser> FilteredUsers => _users
 		.Where(user => string.IsNullOrWhiteSpace(_searchTerm)
 			|| user.Username.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)
 			|| user.Email.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)
-			|| user.DeviceName.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)
-			|| user.DeviceSerialId.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase))
+			|| user.DeviceName.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase))
 		.OrderBy(user => user.Username)
 		.ToList();
 
-	private void AttemptLogin()
-	{
-		if (!string.Equals(_login.Username.Trim(), "admin", StringComparison.OrdinalIgnoreCase))
-		{
-			_loginFeedback = "Nome utente non valido. Usa admin.";
+	private void AttemptLogin() {
+		if (!string.Equals(_login.Username.Trim(), "admin", StringComparison.OrdinalIgnoreCase)) {
+			SnackBar.Add("Nome utente non valido. Usa admin.", Severity.Error);
 			return;
 		}
 
-		if (!string.Equals(_login.Password, AdminPassword, StringComparison.Ordinal))
-		{
-			_loginFeedback = "Password non corretta.";
+		if (!string.Equals(_login.Password, AdminPassword, StringComparison.Ordinal)) {
+			SnackBar.Add("Password non corretta.", Severity.Error);
 			return;
 		}
 
-		_loginFeedback = null;
-		_toast = "Accesso admin completato.";
+		SnackBar.Add("Accesso admin completato.", Severity.Success);
 		_isUnlocked = true;
 	}
 
-	private void BeginCreate()
-	{
+	private void BeginCreate() {
 		_isCreating = true;
 		_editingUserId = null;
 		_editor = CreateEmptyEditor();
-		_toast = "Modalità inserimento attiva.";
+		SnackBar.Add("Modalità inserimento ON", Severity.Info);
 	}
 
-	private void BeginEdit(ManagedUser user)
-	{
+	private void BeginEdit(ManagedUser user) {
 		_isCreating = false;
 		_editingUserId = user.Id;
-		_editor = new UserEditorModel
-		{
+		_editor = new UserEditorModel {
 			Username = user.Username,
 			FullName = user.FullName,
 			Email = user.Email,
-			Role = user.Role,
-			Verified = user.Verified,
 			DeviceName = user.DeviceName,
 			DeviceLocation = user.DeviceLocation,
-			DeviceSerialId = user.DeviceSerialId,
 			Password = user.Password,
 			DeviceStatus = user.DeviceStatus
 		};
-		_toast = $"Stai modificando {user.Username}.";
+
+		SnackBar.Add($"Stai modificando {user.Username}.", Severity.Info);
 	}
 
-	private void CancelEditor()
-	{
+	private void CancelEditor() {
 		_isCreating = true;
 		_editingUserId = null;
 		_editor = CreateEmptyEditor();
 	}
 
-	private void ResetEditor()
-	{
+	private void ResetEditor() {
 		CancelEditor();
-		_toast = "Form resettato.";
+		SnackBar.Add("Form resettato.", Severity.Info);
 	}
 
-	private async Task SaveEditor()
-	{
-		if (_isCreating)
-		{
+	private async Task SaveEditor() {
+		if (_isCreating) {
 			var user = new ManagedUser
 			{
 				Id = _nextId++,
 				Username = _editor.Username.Trim(),
 				FullName = _editor.FullName.Trim(),
 				Email = _editor.Email.Trim(),
-				Role = _editor.Role,
-				Verified = _editor.Verified,
 				DeviceName = _editor.DeviceName.Trim(),
 				DeviceLocation = _editor.DeviceLocation.Trim(),
-				DeviceSerialId = _editor.DeviceSerialId.Trim(),
 				Password = _editor.Password,
 				DeviceStatus = _editor.DeviceStatus
 			};
@@ -288,58 +235,45 @@
 			await UserStore.UpsertAsync(MapToRecord(user));
 			_users = await LoadUsersAsync();
 
-			_toast = $"Utente {user.Username} aggiunto.";
-		}
-		else if (_editingUserId is not null)
-		{
+			SnackBar.Add($"Utente {user.Username} aggiunto.", Severity.Success);
+		} else if (_editingUserId is not null) {
 			var user = _users.First(item => item.Id == _editingUserId.Value);
 			user.Username = _editor.Username.Trim();
 			user.FullName = _editor.FullName.Trim();
 			user.Email = _editor.Email.Trim();
-			user.Role = _editor.Role;
-			user.Verified = _editor.Verified;
 			user.DeviceName = _editor.DeviceName.Trim();
 			user.DeviceLocation = _editor.DeviceLocation.Trim();
-			user.DeviceSerialId = _editor.DeviceSerialId.Trim();
 			user.Password = _editor.Password;
 			user.DeviceStatus = _editor.DeviceStatus;
 			await UserStore.UpsertAsync(MapToRecord(user));
 			_users = await LoadUsersAsync();
 
-			_toast = $"Utente {user.Username} aggiornato.";
+			SnackBar.Add($"Utente {user.Username} aggiornato.", Severity.Success);
 		}
 
 		CancelEditor();
 	}
 
-	private async Task DeleteUser(int id)
-	{
+	private async Task DeleteUser(int id) {
 		var user = _users.FirstOrDefault(item => item.Id == id);
 		if (user is null)
-		{
 			return;
-		}
 
 		await UserStore.DeleteAsync(id);
 		_users.Remove(user);
 
 		if (_editingUserId == id)
-		{
 			CancelEditor();
-		}
 
-		_toast = $"Utente {user.Username} eliminato.";
+		SnackBar.Add($"Utente {user.Username} eliminato.", Severity.Success);
 	}
 
-	private static UserEditorModel CreateEmptyEditor() => new()
-	{
-		Role = "viewer",
+	private static UserEditorModel CreateEmptyEditor() => new() {
 		Password = string.Empty,
 		DeviceStatus = "online"
 	};
 
-	private async Task<List<ManagedUser>> LoadUsersAsync()
-	{
+	private async Task<List<ManagedUser>> LoadUsersAsync() {
 		var records = await UserStore.GetAllAsync();
 		return records
 			.Select(MapFromRecord)
@@ -347,45 +281,34 @@
 			.ToList();
 	}
 
-	private static ManagedUser MapFromRecord(SharedUserRecord record) => new()
-	{
+	private static ManagedUser MapFromRecord(SharedUserRecord record) => new() {
 		Id = record.Id,
 		Username = record.Username,
 		FullName = record.FullName,
 		Email = record.Email,
-		Role = record.Role,
-		Verified = record.Verified,
 		DeviceName = record.DeviceName,
 		DeviceLocation = record.DeviceLocation,
-		DeviceSerialId = record.DeviceSerialId,
 		Password = record.Password,
 		DeviceStatus = record.DeviceStatus
 	};
 
-	private static SharedUserRecord MapToRecord(ManagedUser user) => new()
-	{
+	private static SharedUserRecord MapToRecord(ManagedUser user) => new() {
 		Id = user.Id,
 		Username = user.Username,
 		FullName = user.FullName,
 		Email = user.Email,
 		Password = user.Password,
-		Role = user.Role,
-		Verified = user.Verified,
 		DeviceName = user.DeviceName,
 		DeviceLocation = user.DeviceLocation,
-		DeviceSerialId = user.DeviceSerialId,
 		DeviceStatus = user.DeviceStatus
 	};
 
-	private sealed class AdminLoginModel
-	{
+	private sealed class AdminLoginModel {
 		public string Username { get; set; } = string.Empty;
-
 		public string Password { get; set; } = string.Empty;
 	}
 
-	private sealed class UserEditorModel
-	{
+	private sealed class UserEditorModel {
 		[Required, StringLength(80, MinimumLength = 3)]
 		public string Username { get; set; } = string.Empty;
 
@@ -395,18 +318,10 @@
 		[Required, EmailAddress]
 		public string Email { get; set; } = string.Empty;
 
-		[Required]
-		public string Role { get; set; } = string.Empty;
-
-		public bool Verified { get; set; }
-
 		[Required, StringLength(120, MinimumLength = 3)]
 		public string DeviceName { get; set; } = string.Empty;
 
 		public string DeviceLocation { get; set; } = string.Empty;
-
-		[Required, StringLength(80, MinimumLength = 3)]
-		public string DeviceSerialId { get; set; } = string.Empty;
 
 		[Required, StringLength(80, MinimumLength = 4)]
 		public string Password { get; set; } = string.Empty;
@@ -415,28 +330,14 @@
 		public string DeviceStatus { get; set; } = string.Empty;
 	}
 
-	private sealed class ManagedUser
-	{
+	private sealed class ManagedUser {
 		public int Id { get; set; }
-
 		public string Username { get; set; } = string.Empty;
-
 		public string FullName { get; set; } = string.Empty;
-
 		public string Email { get; set; } = string.Empty;
-
-		public string Role { get; set; } = string.Empty;
-
-		public bool Verified { get; set; }
-
 		public string DeviceName { get; set; } = string.Empty;
-
 		public string DeviceLocation { get; set; } = string.Empty;
-
-		public string DeviceSerialId { get; set; } = string.Empty;
-
 		public string Password { get; set; } = string.Empty;
-
 		public string DeviceStatus { get; set; } = string.Empty;
 	}
 }

@@ -5,10 +5,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+
     <ResourcePreloader />
-    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
-    <link rel="stylesheet" href="@Assets["app.css"]" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="@Assets["_content/MudBlazor/MudBlazor.min.css?v=1"]" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="@Assets["bootstrap/css/bootstrap-reboot.min.css"]" /> 
+    <link rel="stylesheet" type="text/css" href="@Assets["bootstrap/css/bootstrap-grid.min.css"]" /> 
+    <link rel="stylesheet" type="text/css" href="@Assets["bootstrap/css/bootstrap.min.css"]" /> 
+    <link rel="stylesheet" type="text/css" href="@Assets["style/admin.css"]" /> 
     <link rel="stylesheet" href="@Assets["admin.styles.css"]" />
+    
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
@@ -17,7 +25,11 @@
 <body>
     <Routes @rendermode="InteractiveServer" />
     <ReconnectModal @rendermode="InteractiveServer" />
+
+    <script src="@Assets["bootstrap/js/bootstrap.bundle.min.js"]"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js?v=1"]"></script>
+    <script src="@Assets["script/admin.js"]"></script> 
 </body>
 
 </html>

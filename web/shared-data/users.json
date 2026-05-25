@@ -1,54 +1,12 @@
 [
   {
     "id": 1,
-    "username": "admin",
-    "email": "admin@iot.local",
-    "password": "Admin2026!",
-    "fullName": "Admin IoT",
-    "role": "admin",
-    "verified": true,
-    "deviceName": "ESP32-Admin",
-    "deviceLocation": "Server Room",
-    "deviceSerialId": "ESP32-001",
-    "deviceStatus": "online"
-  },
-  {
-    "id": 2,
-    "username": "mario",
-    "email": "mario@iot.local",
-    "password": "Mario1234!",
+    "username": "MarioRossi1975",
+    "email": "mario.rossi@gmail.com",
+    "password": "MarioPassword",
     "fullName": "Mario Rossi",
-    "role": "viewer",
-    "verified": true,
-    "deviceName": "ESP32-Mario",
-    "deviceLocation": "Home",
-    "deviceSerialId": "ESP32-002",
-    "deviceStatus": "online"
-  },
-  {
-    "id": 3,
-    "username": "giulia",
-    "email": "giulia@iot.local",
-    "password": "Giulia1234!",
-    "fullName": "Giulia Bianchi",
-    "role": "viewer",
-    "verified": true,
-    "deviceName": "ESP32-Giulia",
-    "deviceLocation": "Home",
-    "deviceSerialId": "ESP32-003",
+    "deviceName": "ESP32-MarioRossi",
+    "deviceLocation": "Mario House",
     "deviceStatus": "offline"
-  },
-  {
-    "id": 4,
-    "username": "mario",
-    "email": "filippocagnin693@gmail.com",
-    "password": "1234",
-    "fullName": "Mario Vespa",
-    "role": "viewer",
-    "verified": false,
-    "deviceName": "ESP32-Lab",
-    "deviceLocation": "Home",
-    "deviceSerialId": "ESP32-002",
-    "deviceStatus": "online"
   }
 ]

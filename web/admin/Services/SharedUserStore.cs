@@ -1,195 +1,132 @@
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace admin.Services;
 
-public sealed class SharedUserStore
-{
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
-    };
+public sealed class SharedUserStore(AppDbContext db) {
+    public async Task<List<SharedUserRecord>> GetAllAsync() {
+        var users = await db.Users
+            .Include(u => u.Device)
+            .ToListAsync();
 
-    private readonly string _storagePath;
-    private readonly SemaphoreSlim _gate = new(1, 1);
-
-    public SharedUserStore(IWebHostEnvironment environment)
-    {
-        _storagePath = Path.GetFullPath(Path.Combine(environment.ContentRootPath, "..", "shared-data", "users.json"));
+        return users.Select(u => new SharedUserRecord {
+            Id = u.Id,
+            Username = u.Username,
+            Email = u.Email,
+            Password = u.PasswordHash,
+            FullName = u.FullName,
+            DeviceName = u.Device?.Name ?? string.Empty,
+            DeviceLocation = u.Device?.Location ?? string.Empty,
+            DeviceStatus = u.Device?.Status ?? "offline"
+        }).ToList();
     }
 
-    public async Task<List<SharedUserRecord>> GetAllAsync()
-    {
-        await _gate.WaitAsync();
-        try
-        {
-            await EnsureSeededAsync();
-            var json = await File.ReadAllTextAsync(_storagePath);
-            return JsonSerializer.Deserialize<List<SharedUserRecord>>(json, JsonOptions) ?? [];
-        }
-        finally
-        {
-            _gate.Release();
-        }
+    public async Task<SharedUserRecord?> FindByEmailAsync(string email) {
+        var u = await db.Users
+            .Include(u => u.Device)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.Trim().ToLower());
+
+        if (u is null) return null;
+
+        return new SharedUserRecord {
+            Id = u.Id,
+            Username = u.Username,
+            Email = u.Email,
+            Password = u.PasswordHash,
+            FullName = u.FullName,
+            DeviceName = u.Device?.Name ?? string.Empty,
+            DeviceLocation = u.Device?.Location ?? string.Empty,
+            DeviceStatus = u.Device?.Status ?? "offline"
+        };
     }
 
-    public async Task<SharedUserRecord?> FindByEmailAsync(string email)
-    {
-        var normalizedEmail = email.Trim();
-        var users = await GetAllAsync();
-        return users.FirstOrDefault(user => string.Equals(user.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase));
-    }
+    public async Task UpsertAsync(SharedUserRecord record) {
+        var existing = await db.Users
+            .Include(u => u.Device)
+            .FirstOrDefaultAsync(u => u.Id == record.Id || u.Email == record.Email);
 
-    public async Task UpsertAsync(SharedUserRecord user)
-    {
-        await _gate.WaitAsync();
-        try
-        {
-            await EnsureSeededAsync();
-            var users = await ReadUsersUnlockedAsync();
-            var existing = users.FirstOrDefault(item => item.Id == user.Id || string.Equals(item.Email, user.Email, StringComparison.OrdinalIgnoreCase));
+        if (existing is null) {
+            // --- CREATE user ---
+            var user = new UserEntity {
+                Username = record.Username,
+                Email = record.Email,
+                PasswordHash = record.Password,
+                FullName = record.FullName,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.Users.Add(user);
+            await db.SaveChangesAsync(); 
 
-            if (existing is null)
-            {
-                if (user.Id <= 0)
-                {
-                    user.Id = users.Count == 0 ? 1 : users.Max(item => item.Id) + 1;
-                }
+            // --- CREATE device ---
+            var device = new DeviceEntity {
+                UserId    = user.Id,
+                Name      = record.DeviceName,
+                Location  = record.DeviceLocation,
+                Status    = record.DeviceStatus,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.Devices.Add(device);
+            await db.SaveChangesAsync(); 
 
-                users.Add(user);
+            // --- ADD standard sensors ---
+            db.Sensors.AddRange(BuildStandardSensors(device.Id));
+            await db.SaveChangesAsync();
+        } else {
+            // --- UPDATE user ---
+            existing.Username = record.Username;
+            existing.Email = record.Email;
+            existing.PasswordHash = record.Password;
+            existing.FullName = record.FullName;
+
+            // --- UPDATE device ---
+            if (existing.Device is not null) {
+                existing.Device.Name = record.DeviceName;
+                existing.Device.Location = record.DeviceLocation;
+                existing.Device.Status = record.DeviceStatus;
+            } else {
+                var device = new DeviceEntity {
+                    UserId    = existing.Id,
+                    Name      = record.DeviceName,
+                    Location  = record.DeviceLocation,
+                    Status    = record.DeviceStatus,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                db.Devices.Add(device);
+                await db.SaveChangesAsync();
+                db.Sensors.AddRange(BuildStandardSensors(device.Id));
             }
-            else
-            {
-                user.Id = existing.Id;
-                users[users.IndexOf(existing)] = user;
-            }
 
-            await WriteUsersUnlockedAsync(users);
-        }
-        finally
-        {
-            _gate.Release();
+            await db.SaveChangesAsync();
         }
     }
 
-    public async Task DeleteAsync(int id)
-    {
-        await _gate.WaitAsync();
-        try
-        {
-            await EnsureSeededAsync();
-            var users = await ReadUsersUnlockedAsync();
-            users.RemoveAll(user => user.Id == id);
-            await WriteUsersUnlockedAsync(users);
+    public async Task DeleteAsync(int id) {
+        var user = await db.Users
+            .Include(u => u.Device)
+                .ThenInclude(d => d!.Sensors)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user is null) return;
+
+        if (user.Device is not null) {
+            db.Sensors.RemoveRange(user.Device.Sensors);
+            db.Devices.Remove(user.Device);
         }
-        finally
-        {
-            _gate.Release();
-        }
+
+        db.Users.Remove(user);
+        await db.SaveChangesAsync();
     }
 
-    private async Task EnsureSeededAsync()
-    {
-        var directory = Path.GetDirectoryName(_storagePath);
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        if (File.Exists(_storagePath))
-        {
-            return;
-        }
-
-        await WriteUsersUnlockedAsync(CreateSeedUsers());
-    }
-
-    private async Task<List<SharedUserRecord>> ReadUsersUnlockedAsync()
-    {
-        if (!File.Exists(_storagePath))
-        {
-            return CreateSeedUsers();
-        }
-
-        var json = await File.ReadAllTextAsync(_storagePath);
-        return JsonSerializer.Deserialize<List<SharedUserRecord>>(json, JsonOptions) ?? [];
-    }
-
-    private async Task WriteUsersUnlockedAsync(List<SharedUserRecord> users)
-    {
-        var json = JsonSerializer.Serialize(users, JsonOptions);
-        await File.WriteAllTextAsync(_storagePath, json);
-    }
-
-    private static List<SharedUserRecord> CreateSeedUsers() =>
+    private static List<SensorEntity> BuildStandardSensors(int deviceId) =>
     [
-        new SharedUserRecord
-        {
-            Id = 1,
-            Username = "admin",
-            Email = "admin@iot.local",
-            Password = "Admin2026!",
-            FullName = "Admin IoT",
-            Role = "admin",
-            Verified = true,
-            DeviceName = "ESP32-Admin",
-            DeviceLocation = "Server Room",
-            DeviceSerialId = "ESP32-001",
-            DeviceStatus = "online"
-        },
-        new SharedUserRecord
-        {
-            Id = 2,
-            Username = "mario",
-            Email = "mario@iot.local",
-            Password = "Mario1234!",
-            FullName = "Mario Rossi",
-            Role = "viewer",
-            Verified = true,
-            DeviceName = "ESP32-Mario",
-            DeviceLocation = "Home",
-            DeviceSerialId = "ESP32-002",
-            DeviceStatus = "online"
-        },
-        new SharedUserRecord
-        {
-            Id = 3,
-            Username = "giulia",
-            Email = "giulia@iot.local",
-            Password = "Giulia1234!",
-            FullName = "Giulia Bianchi",
-            Role = "viewer",
-            Verified = true,
-            DeviceName = "ESP32-Giulia",
-            DeviceLocation = "Home",
-            DeviceSerialId = "ESP32-003",
-            DeviceStatus = "offline"
-        }
+        new() { DeviceId = deviceId, Type = "temperature", Label = "DHT22 Temperatura", Unit = "°C", MinThreshold = -10, MaxThreshold = 50 },
+        new() { DeviceId = deviceId, Type = "humidity", Label = "DHT22 Umidità", Unit = "%", MinThreshold = 0, MaxThreshold = 100 },
+        new() { DeviceId = deviceId, Type = "temperature", Label = "BMP180 Temperatura", Unit = "°C", MinThreshold = -10, MaxThreshold = 50 },
+        new() { DeviceId = deviceId, Type = "pressure", Label = "BMP180 Pressione", Unit = "Pa", MinThreshold = 90000, MaxThreshold = 110000 },
+        new() { DeviceId = deviceId, Type = "temperature", Label = "NTC Temperatura", Unit = "°C", MinThreshold = -10, MaxThreshold = 50 },
+        new() { DeviceId = deviceId, Type = "light", Label = "Luminosità", Unit = "lux", MinThreshold = 0, MaxThreshold = 10000 },
+        new() { DeviceId = deviceId, Type = "gas", Label = "Gas", Unit = "", MinThreshold = 0, MaxThreshold = 0.60m },
+        new() { DeviceId = deviceId, Type = "wind", Label = "Vento", Unit = "", MinThreshold = 0, MaxThreshold = 1 },
+        new() { DeviceId = deviceId, Type = "water", Label = "Acqua", Unit = "", MinThreshold = 0, MaxThreshold = 1 },
     ];
-}
-
-public sealed class SharedUserRecord
-{
-    public int Id { get; set; }
-
-    public string Username { get; set; } = string.Empty;
-
-    public string Email { get; set; } = string.Empty;
-
-    public string Password { get; set; } = string.Empty;
-
-    public string FullName { get; set; } = string.Empty;
-
-    public string Role { get; set; } = string.Empty;
-
-    public bool Verified { get; set; }
-
-    public string DeviceName { get; set; } = string.Empty;
-
-    public string DeviceLocation { get; set; } = string.Empty;
-
-    public string DeviceSerialId { get; set; } = string.Empty;
-
-    public string DeviceStatus { get; set; } = string.Empty;
 }

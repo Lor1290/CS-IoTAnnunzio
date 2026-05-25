@@ -1,38 +1,53 @@
-using admin.Components;
 using admin.Services;
+using admin.Components;
 
-namespace admin;
+using Microsoft.EntityFrameworkCore;
 
-public class Program
+using MudBlazor;
+using MudBlazor.Services;
+
+namespace admin
 {
-    public static void Main(string[] args)
+    public class Program
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Add services to the container.
-        builder.Services.AddSingleton<SharedUserStore>();
-        builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
+        public static void Main(string[] args)
         {
-            app.UseExceptionHandler("/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
+            var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
+                    mySqlOptions => mySqlOptions.CommandTimeout(60)));
+
+            builder.Services.AddScoped<SharedUserStore>();  
+
+            builder.Services.AddMudServices(config => {
+                config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
+                config.SnackbarConfiguration.PreventDuplicates = false;
+                config.SnackbarConfiguration.NewestOnTop = false;
+                config.SnackbarConfiguration.ShowCloseIcon = true;
+                config.SnackbarConfiguration.VisibleStateDuration = 3000;
+                config.SnackbarConfiguration.HideTransitionDuration = 200;
+                config.SnackbarConfiguration.ShowTransitionDuration = 200;
+                config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+            });
+
+            var app = builder.Build();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
+            }
+
+            app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+            app.UseHttpsRedirection();
+            app.UseAntiforgery();
+            app.MapStaticAssets();
+            app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
+            app.Run();
         }
-
-        app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-        app.UseHttpsRedirection();
-
-        app.UseAntiforgery();
-
-        app.MapStaticAssets();
-        app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
-
-        app.Run();
     }
 }
