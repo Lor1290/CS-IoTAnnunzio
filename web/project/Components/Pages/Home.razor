@@ -2,6 +2,7 @@
 @inject SharedUserStore UserStore
 @inject IEmailVerificationSender EmailSender
 @inject ISnackbar Snackbar
+@implements IDisposable
 
 <PageTitle>User Panel</PageTitle>
 
@@ -230,6 +231,8 @@
     private bool _isAuthenticated;
     private bool _isVerificationStep;
 
+    private System.Threading.Timer? _refreshTimer;
+
     protected override async Task OnInitializedAsync()
     {
         try {
@@ -306,6 +309,11 @@
         Snackbar.Add($"Benvenuto {_currentAccount.FullName}.", Severity.Success);
         await LoadDashboardDataAsync();
         StateHasChanged();
+
+        _refreshTimer = new System.Threading.Timer(async _ => {
+            await LoadDashboardDataAsync();
+            await InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
     }
 
     private void SetSection(UserSection section) => _activeSection = section;
@@ -391,6 +399,8 @@
 
     private void Logout()
     {
+        _refreshTimer?.Dispose();
+        _refreshTimer = null;
         _isAuthenticated = false;
         _isVerificationStep = false;
         _currentAccount = new DashboardAccount();
@@ -399,5 +409,10 @@
         _login.Email = string.Empty;
         _login.Password = string.Empty;
         Snackbar.Add("Disconnesso con successo.", Severity.Info);
+    }
+
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
     }
 }
