@@ -28,15 +28,15 @@ DB_CONFIG = {
 }
 
 SENSOR_MAP = {
-    "LUCE": ("light", "Sensore Luce", "lux", None),
-    "VENTO": ("wind", "Sensore Vento", "ratio", None),
-    "ACQUA": ("water", "Sensore Acqua", "bool", "Allerta Allagamento"),
-    "GAS": ("gas", "Sensore Gas", "ratio", "Allerta Concentrazione Gas"),
-    "TEMP1_T": ("temperature", "TEMP1 - Temperatura", "°C", None),
-    "TEMP1_H": ("humidity", "TEMP1 - Umidità", "%", None),
-    "TEMP2_T": ("temperature", "TEMP2 - Temperatura", "°C", None),
-    "TEMP2_P": ("pressure", "TEMP2 - Pressione", "Pa", None),
-    "TEMP3_T": ("temperature", "TEMP3 - Temperatura", "°C", None),
+    "LUCE":    ("light",       "Luminosità",        "lux",  None),
+    "VENTO":   ("wind",        "Vento",              "ratio", None),
+    "ACQUA":   ("water",       "Acqua",              "bool",  "Allerta Allagamento"),
+    "GAS":     ("gas",         "Gas",                "ratio", "Allerta Concentrazione Gas"),
+    "TEMP1_T": ("temperature", "DHT22 Temperatura",  "°C",    None),
+    "TEMP1_H": ("humidity",    "DHT22 Umidità",      "%",     None),
+    "TEMP2_T": ("temperature", "BMP180 Temperatura", "°C",    None),
+    "TEMP2_P": ("pressure",    "BMP180 Pressione",   "Pa",    None),
+    "TEMP3_T": ("temperature", "NTC Temperatura",    "°C",    None),
 }
 
 logging.basicConfig(
