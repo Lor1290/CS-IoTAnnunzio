@@ -161,7 +161,7 @@ F:/Courses/PublicCourses/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/awlk2ijx7w-{0}-63fj8s7r0e-63fj8s7r0e.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/jz0plxmoo5-{0}-0j3bgjxly4-0j3bgjxly4.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/hyjcoyt4vi-{0}-5ipweew5fc-5ipweew5fc.gz
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/istronluto-{0}-sjjj5hrta3-sjjj5hrta3.gz
+/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/istronluto-{0}-nw847iala2-nw847iala2.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/3d01iucjil-{0}-mgww215af1-mgww215af1.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/compressed/11f1ce3sqg-{0}-dy8h75y8gn-dy8h75y8gn.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/project/obj/Debug/net10.0/staticwebassets.build.json

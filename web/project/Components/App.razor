@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
 
-    @* <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#f0b84d" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#4fd1c5" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="IoT User" /> *@
+    <meta name="apple-mobile-web-app-title" content="Dashboard" />
 
     <ResourcePreloader />
 
@@ -36,6 +35,12 @@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["_content/MudBlazor/MudBlazor.min.js?v=1"]"></script>
     <script src="@Assets["script/project.js"]"></script> 
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    </script>
 </body>
 
 </html>

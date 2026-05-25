@@ -28,7 +28,18 @@ public sealed class EmailVerificationSender : IEmailVerificationSender {
             using var message = new MailMessage {
                 From = new MailAddress(_settings.FromAddress, _settings.FromName),
                 Subject = "Codice di verifica accesso",
-                Body = $"Ciao {toName},\n\nil tuo codice di verifica e': {verificationCode}\n\nSe non sei stato tu a richiederlo, ignora questo messaggio.",
+                Body = $@"
+Ciao {toName},
+bentornato nella tua Dashboard Sensori 👋
+Ecco il tuo codice di verifica:
+
+    {verificationCode}
+
+Inseriscilo nella pagina di accesso per entrare.
+Il codice è valido per questa sessione soltanto.
+Se non hai richiesto l'accesso, ignora pure questa email.
+
+— Il team IoT Annunzio",
                 IsBodyHtml = false
             };
 

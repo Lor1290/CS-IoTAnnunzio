@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @inject SharedUserStore UserStore
 @inject IEmailVerificationSender EmailSender
 @inject ISnackbar Snackbar
@@ -24,7 +24,6 @@
 
                 <div class="button-row">
                     <button type="button" class="primary-button" @onclick="RequestVerificationCode">Invia codice</button>
-                    <span class="helper-text">Il codice verrà inviato via email</span>
                 </div>
 
                 @if (_isVerificationStep)
@@ -60,7 +59,6 @@
                     <div>
                         <p class="eyebrow">Benvenuto</p>
                         <h2>Dashboard Sensori</h2>
-                        <p class="muted">Visualizzazione dati sensori in tempo reale.</p>
                     </div>
                     <div class="hero-actions">
                         <div class="pill">Profilo: @_currentAccount.Username</div>
@@ -76,17 +74,6 @@
                         }
                         else
                         {
-                            <section class="kpi-row">
-                                @foreach (var s in _sensors.Take(4))
-                                {
-                                    <article class="kpi-card metric-card">
-                                        <span>@s.Label</span>
-                                        <strong>@(s.HasValue ? $"{s.Value:F1} {s.Unit}" : "—")</strong>
-                                        <p>@(s.Timestamp.HasValue ? s.Timestamp.Value.ToString("HH:mm:ss") : "Nessuna lettura")</p>
-                                    </article>
-                                }
-                            </section>
-
                             <section class="main-grid">
                                 <div class="chart-area">
                                     <article class="big-chart chart-card">
@@ -103,14 +90,40 @@
                                             {
                                                 <div class="chart-row">
                                                     <div class="chart-labels">
-                                                        <strong>@s.Label</strong>
+                                                        <strong>
+                                                            @(s.Label == "DHT22 Temperatura"  ? "Sensore Temperatura 1" :
+                                                            s.Label == "DHT22 Umidità"      ? "Sensore Umidità 1"     :
+                                                            s.Label == "BMP180 Temperatura" ? "Sensore Temperatura 2" :
+                                                            s.Label == "BMP180 Pressione"   ? "Pressione Atmosferica" :
+                                                            s.Label == "NTC Temperatura"    ? "Sensore Temperatura 3" :
+                                                            s.Label == "Luminosità"         ? "Luminosità Ambiente"   :
+                                                            s.Label == "Gas"                ? "Rilevatore Gas"        :
+                                                            s.Label == "Vento"              ? "Rilevatore Vento"      :
+                                                            s.Label == "Acqua"              ? "Rilevatore Acqua"      : s.Label)
+                                                        </strong>
                                                         <span>@s.Type</span>
                                                     </div>
-                                                    <div class="chart-track">
-                                                        <div class="chart-fill" style="width:@s.Percentage%"></div>
-                                                    </div>
+                                                     @if (s.Type != "gas" && s.Type != "wind" && s.Type != "water") {
+                                                        <div class="chart-track">
+                                                            <div class="chart-fill" style="width:@(s.Percentage)%"></div>
+                                                        </div>
+                                                    }
                                                     <div class="chart-value">
-                                                        @(s.HasValue ? $"{s.Value:F1} {s.Unit}" : "—")
+                                                         <strong>
+                                                            @(!s.HasValue ? "—" :
+                                                            s.Type == "pressure" ? $"{(s.Value!.Value / 100m):F1} hPa" :
+                                                            s.Type == "light"    ? (s.Value!.Value < 10   ? "Buio" :
+                                                                                    s.Value!.Value < 100  ? "Molto scarso" :
+                                                                                    s.Value!.Value < 500  ? "Poco luminoso" :
+                                                                                    s.Value!.Value < 2000 ? "Semi luminoso" :
+                                                                                    s.Value!.Value < 5000 ? "Luminoso" :
+                                                                                                            "Molto luminoso") :
+                                                            s.Type == "gas"      ? (s.Value!.Value > 0.5m ? "Concentrazione elevata" :
+                                                                                    s.Value!.Value > 0.2m ? "Attenzione" : "Normale") :
+                                                            s.Type == "wind"     ? (s.Value!.Value > 0.5m ? "Vento presente" : "Assente") :
+                                                            s.Type == "water"    ? (s.Value!.Value >= 1m  ? "Allagamento rilevato" : "Nessuna perdita") :
+                                                            $"{s.Value!.Value:F1} {s.Unit}")
+                                                        </strong>
                                                     </div>
                                                 </div>
                                             }
@@ -146,24 +159,6 @@
                                         </article>
                                     </div>
                                 </div>
-
-                                <aside class="right-column">
-                                    @foreach (var s in _sensors.Where(s => s.HasValue).Take(3))
-                                    {
-                                        <article class="metric-panel">
-                                            <div class="card-heading">
-                                                <div>
-                                                    <p class="eyebrow">@s.Type</p>
-                                                    <h3>@s.Label</h3>
-                                                </div>
-                                                <div class="metric-large">@($"{s.Value:F2} {s.Unit}")</div>
-                                            </div>
-                                            <div class="chart-track" style="margin-top:0.5rem;">
-                                                <div class="chart-fill" style="width:@s.Percentage%"></div>
-                                            </div>
-                                        </article>
-                                    }
-                                </aside>
                             </section>
                         }
                         break;
@@ -313,7 +308,7 @@
         _refreshTimer = new System.Threading.Timer(async _ => {
             await LoadDashboardDataAsync();
             await InvokeAsync(StateHasChanged);
-        }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
     }
 
     private void SetSection(UserSection section) => _activeSection = section;

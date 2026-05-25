@@ -10,7 +10,6 @@
 
 
 # Chi siamo? 
-Il nostro team
 
 ### Author
 - [@Lor1290](https://www.github.com/Lor1290) <br />
