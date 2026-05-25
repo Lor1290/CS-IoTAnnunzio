@@ -2,10 +2,8 @@ using System.Text.Json;
 
 namespace project.Services;
 
-public sealed class SharedUserStore
-{
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
+public sealed class SharedUserStore {
+    private static readonly JsonSerializerOptions JsonOptions = new() {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
@@ -14,101 +12,78 @@ public sealed class SharedUserStore
     private readonly string _storagePath;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public SharedUserStore(IWebHostEnvironment environment)
-    {
+    public SharedUserStore(IWebHostEnvironment environment) {
         _storagePath = Path.GetFullPath(Path.Combine(environment.ContentRootPath, "..", "shared-data", "users.json"));
     }
 
-    public async Task<List<SharedUserRecord>> GetAllAsync()
-    {
+    public async Task<List<SharedUserRecord>> GetAllAsync() {
         await _gate.WaitAsync();
-        try
-        {
+        try {
             await EnsureSeededAsync();
             var json = await File.ReadAllTextAsync(_storagePath);
             return JsonSerializer.Deserialize<List<SharedUserRecord>>(json, JsonOptions) ?? [];
-        }
-        finally
-        {
+        } finally {
             _gate.Release();
         }
     }
 
-    public async Task<SharedUserRecord?> FindByEmailAsync(string email)
-    {
+    public async Task<SharedUserRecord?> FindByEmailAsync(string email) {
         var normalizedEmail = email.Trim();
         var users = await GetAllAsync();
         return users.FirstOrDefault(user => string.Equals(user.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase));
     }
 
-    public async Task UpsertAsync(SharedUserRecord user)
-    {
+    public async Task UpsertAsync(SharedUserRecord user) {
         await _gate.WaitAsync();
-        try
-        {
+        try {
             await EnsureSeededAsync();
             var users = await ReadUsersUnlockedAsync();
             var existing = users.FirstOrDefault(item => item.Id == user.Id || string.Equals(item.Email, user.Email, StringComparison.OrdinalIgnoreCase));
 
-            if (existing is null)
-            {
-                if (user.Id <= 0)
-                {
+            if (existing is null) {
+                if (user.Id <= 0) {
                     user.Id = users.Count == 0 ? 1 : users.Max(item => item.Id) + 1;
                 }
 
                 users.Add(user);
-            }
-            else
-            {
+            } else {
                 user.Id = existing.Id;
                 users[users.IndexOf(existing)] = user;
             }
 
             await WriteUsersUnlockedAsync(users);
-        }
-        finally
-        {
+        } finally {
             _gate.Release();
         }
     }
 
-    public async Task DeleteAsync(int id)
-    {
+    public async Task DeleteAsync(int id) {
         await _gate.WaitAsync();
-        try
-        {
+        try {
             await EnsureSeededAsync();
             var users = await ReadUsersUnlockedAsync();
             users.RemoveAll(user => user.Id == id);
             await WriteUsersUnlockedAsync(users);
-        }
-        finally
-        {
+        } finally {
             _gate.Release();
         }
     }
 
-    private async Task EnsureSeededAsync()
-    {
+    private async Task EnsureSeededAsync() {
         var directory = Path.GetDirectoryName(_storagePath);
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
+        if (!string.IsNullOrWhiteSpace(directory)) {
             Directory.CreateDirectory(directory);
         }
 
-        if (File.Exists(_storagePath))
-        {
+        if (File.Exists(_storagePath)) {
             return;
         }
 
         await WriteUsersUnlockedAsync(CreateSeedUsers());
     }
 
-    private async Task<List<SharedUserRecord>> ReadUsersUnlockedAsync()
-    {
-        if (!File.Exists(_storagePath))
-        {
+    private async Task<List<SharedUserRecord>> ReadUsersUnlockedAsync() {
+        if (!File.Exists(_storagePath)) {
             return CreateSeedUsers();
         }
 
@@ -116,8 +91,7 @@ public sealed class SharedUserStore
         return JsonSerializer.Deserialize<List<SharedUserRecord>>(json, JsonOptions) ?? [];
     }
 
-    private async Task WriteUsersUnlockedAsync(List<SharedUserRecord> users)
-    {
+    private async Task WriteUsersUnlockedAsync(List<SharedUserRecord> users) {
         var json = JsonSerializer.Serialize(users, JsonOptions);
         await File.WriteAllTextAsync(_storagePath, json);
     }
@@ -172,24 +146,14 @@ public sealed class SharedUserStore
 public sealed class SharedUserRecord
 {
     public int Id { get; set; }
-
     public string Username { get; set; } = string.Empty;
-
     public string Email { get; set; } = string.Empty;
-
     public string Password { get; set; } = string.Empty;
-
     public string FullName { get; set; } = string.Empty;
-
     public string Role { get; set; } = string.Empty;
-
     public bool Verified { get; set; }
-
     public string DeviceName { get; set; } = string.Empty;
-
     public string DeviceLocation { get; set; } = string.Empty;
-
     public string DeviceSerialId { get; set; } = string.Empty;
-
     public string DeviceStatus { get; set; } = string.Empty;
 }
