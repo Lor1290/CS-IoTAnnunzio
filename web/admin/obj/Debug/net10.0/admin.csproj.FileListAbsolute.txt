@@ -111,10 +111,7 @@ F:/Courses/PublicCourses/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/0
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/rjimswa.dswa.cache.json
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/rjsmrazor.dswa.cache.json
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/rjsmcshtml.dswa.cache.json
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/scopedcss/Components/Layout/NavMenu.razor.rz.scp.css
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/scopedcss/Components/Layout/ReconnectModal.razor.rz.scp.css
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/scopedcss/bundle/admin.styles.css
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/scopedcss/projectbundle/admin.bundle.scp.css
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/tzxjg6is5z-{0}-6x2ajsl5c8-6x2ajsl5c8.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/0wz98yz2xy-{0}-jolev99wdd-jolev99wdd.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/o7k4cxtn0u-{0}-h82a7aihv0-h82a7aihv0.gz
@@ -162,13 +159,12 @@ F:/Courses/PublicCourses/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/0
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/wwqvr9r1k2-{0}-h1s4sie4z3-h1s4sie4z3.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/vn70dm6dub-{0}-63fj8s7r0e-63fj8s7r0e.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/x5c33myjwz-{0}-0j3bgjxly4-0j3bgjxly4.gz
+/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/j6ex320j18-{0}-trrch7sqxb-trrch7sqxb.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/xnpzpf0xu0-{0}-5ipweew5fc-5ipweew5fc.gz
+/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/edo4pt6bv3-{0}-3lp8tr5hus-3lp8tr5hus.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/c2fdjyn9ka-{0}-nrsueudo56-nrsueudo56.gz
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/lzpy4i7p6r-{0}-cyz5k529gx-cyz5k529gx.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/0jne9xwpxu-{0}-mgww215af1-mgww215af1.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/5p6rz8jzri-{0}-dy8h75y8gn-dy8h75y8gn.gz
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/hq7rbhh6pw-{0}-yg0112ubps-yg0112ubps.gz
-/home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/compressed/06dcs0csva-{0}-yg0112ubps-yg0112ubps.gz
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/staticwebassets.build.json
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/staticwebassets.build.json.cache
 /home/polinomio/Documents/repo/schoolRepo/CS-IoTAnnunzio/web/admin/obj/Debug/net10.0/staticwebassets.development.json
