@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-import os 
+import os
 import re
 import time
 import logging
@@ -15,7 +15,7 @@ from mysql.connector import Error   # type: ignore
 # ----------------- #
 
 MAX_READINGS = 50
-ESP32_SERIAL_ID = os.environ["ESP32_SERIAL_ID"]
+DEVICE_NAME = os.environ["ESP32_DEVICE_NAME"]
 
 DB_CONFIG = {
     "autocommit": True,
@@ -32,20 +32,20 @@ SENSOR_MAP = {
     "VENTO": ("wind", "Sensore Vento", "ratio", None),
     "ACQUA": ("water", "Sensore Acqua", "bool", "Allerta Allagamento"),
     "GAS": ("gas", "Sensore Gas", "ratio", "Allerta Concentrazione Gas"),
-    
     "TEMP1_T": ("temperature", "TEMP1 - Temperatura", "°C", None),
-    "TEMP1_H": ("humidity", "TEMP1 - Umidità",     "%", None),
+    "TEMP1_H": ("humidity", "TEMP1 - Umidità", "%", None),
     "TEMP2_T": ("temperature", "TEMP2 - Temperatura", "°C", None),
-    "TEMP2_P": ("pressure", "TEMP2 - Pressione",   "Pa", None),
+    "TEMP2_P": ("pressure", "TEMP2 - Pressione", "Pa", None),
     "TEMP3_T": ("temperature", "TEMP3 - Temperatura", "°C", None),
 }
 
-logging.basicConfig (
+logging.basicConfig(
     level=logging.INFO,
     format="{asctime} - {levelname} - {message}",
-    style="{", 
+    style="{",
     datefmt="%H:%M:%S"
 )
+
 log = logging.getLogger()
 
 
@@ -73,60 +73,58 @@ def connect(retries=5, delay=3):
     raise RuntimeError("Could not connect to MySQL!")
 
 
-def get_or_create_device(cur):
-    cur.execute("SELECT id FROM DEVICES WHERE esp32_serial_id = %s", (ESP32_SERIAL_ID,))
-    
+def get_device(cur):
+    cur.execute("SELECT id FROM devices WHERE name = %s", (DEVICE_NAME,))
     row = cur.fetchone()
-    if row:
-        cur.execute("UPDATE DEVICES SET status='online', last_seen=NOW() WHERE id = %s", (row[0],))
-        return row[0]
-    
+    if row is None:
+        raise RuntimeError(
+            f"Device '{DEVICE_NAME}' non trovato nel database. "
+            f"Crealo prima dall'admin panel."
+        )
     cur.execute(
-        """
-        INSERT INTO DEVICES (name, location, esp32_serial_id, status, last_seen) 
-        VALUES (%s, %s, %s, 'online', NOW())
-        """,
-        ("Wokwi ESP32", "Simulatore", ESP32_SERIAL_ID)
+        "UPDATE devices SET status='online', last_seen=NOW() WHERE id = %s",
+        (row[0],)
     )
-    
-    log.info(f"Created DEVICE id={cur.lastrowid}")
-    return cur.lastrowid
+    log.info(f"Device '{DEVICE_NAME}' trovato, id={row[0]}")
+    return row[0]
 
 
 def get_or_create_sensor(cur, device_id, key):
     sensor_type, label, unit, _ = SENSOR_MAP[key]
-    cur.execute("SELECT id FROM SENSORS WHERE device_id = %s AND label = %s", (device_id, label))
-    
+    cur.execute(
+        "SELECT id FROM sensors WHERE device_id = %s AND label = %s",
+        (device_id, label)
+    )
     row = cur.fetchone()
     if row:
         return row[0]
-    
     cur.execute(
-        "INSERT INTO SENSORS (device_id, type, label, unit) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO sensors (device_id, type, label, unit) VALUES (%s, %s, %s, %s)",
         (device_id, sensor_type, label, unit)
     )
-    
-    log.info(f"Created SENSOR '{label}' id={cur.lastrowid}")
+    log.info(f"Created sensor '{label}' id={cur.lastrowid}")
     return cur.lastrowid
 
 
 def insert_reading(cur, sensor_id, value):
-    cur.execute("SELECT COUNT(*) FROM SENSORSREADING WHERE sensor_id = %s", (sensor_id,))
+    cur.execute(
+        "SELECT COUNT(*) FROM sensor_readings WHERE sensor_id = %s",
+        (sensor_id,)
+    )
     count = cur.fetchone()[0]
-    
+
     if count < MAX_READINGS:
         cur.execute(
-            "INSERT INTO SENSORSREADING (sensor_id, value, timestamp) VALUES (%s, %s, NOW())",
+            "INSERT INTO sensor_readings (sensor_id, value, timestamp) VALUES (%s, %s, NOW())",
             (sensor_id, value)
         )
-        
     else:
         cur.execute(
             """
-            UPDATE SENSORSREADING SET value=%s, timestamp=NOW()
+            UPDATE sensor_readings SET value=%s, timestamp=NOW()
             WHERE sensor_id=%s AND id=(
                 SELECT id FROM (
-                    SELECT id FROM SENSORSREADING
+                    SELECT id FROM sensor_readings
                     WHERE sensor_id=%s ORDER BY timestamp ASC LIMIT 1
                 ) AS oldest
             )
@@ -137,27 +135,23 @@ def insert_reading(cur, sensor_id, value):
 
 def insert_alert(cur, sensor_id, message, severity):
     cur.execute(
-        "SELECT id FROM ALERTS WHERE sensor_id=%s AND resolved_at IS NULL LIMIT 1",
+        "SELECT id FROM alerts WHERE sensor_id=%s AND resolved_at IS NULL LIMIT 1",
         (sensor_id,)
     )
-    
     if cur.fetchone():
         return
-    
     cur.execute(
-        "INSERT INTO ALERTS (sensor_id, severity, message, 1) VALUES (%s, %s, %s)",
+        "INSERT INTO alerts (sensor_id, severity, message) VALUES (%s, %s, %s)",
         (sensor_id, severity, message)
     )
-    
     log.warning(f"ALERT: {message} [{severity}]")
-
 
 
 def main():
     conn = connect()
     cur = conn.cursor()
 
-    device_id = get_or_create_device(cur)
+    device_id = get_device(cur)
     sensor_cache = {}
 
     def sid(key):
@@ -176,11 +170,13 @@ def main():
             continue
 
         if time.time() - last_seen_update > 30:
-            cur.execute("UPDATE DEVICES SET status='online', last_seen=NOW() WHERE id=%s", (device_id,))
+            cur.execute(
+                "UPDATE devices SET status='online', last_seen=NOW() WHERE id=%s",
+                (device_id,)
+            )
             last_seen_update = time.time()
 
         m = RE_DATA.match(line)
-        
         if m:
             for key, val in RE_PAIR.findall(m.group(1)):
                 if key not in SENSOR_MAP:
@@ -199,7 +195,7 @@ def main():
                 insert_alert(cur, sid(key), alert_msg or f"Allerta {key}", severity)
             continue
 
-    cur.execute("UPDATE DEVICES SET status='offline' WHERE id=%s", (device_id,))
+    cur.execute("UPDATE devices SET status='offline' WHERE id=%s", (device_id,))
     cur.close()
     conn.close()
     log.info(f"Done. Lines processed: {lines_processed}")

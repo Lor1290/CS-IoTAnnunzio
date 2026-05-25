@@ -1,6 +1,12 @@
 using project.Components;
 using project.Services;
+
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+
+
+using MudBlazor;
+using MudBlazor.Services;
 
 namespace project;
 
@@ -10,18 +16,40 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-
+        // Add services to the container.
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
         builder.Services.AddSingleton<IEmailVerificationSender, EmailVerificationSender>();
-        builder.Services.AddSingleton<SharedUserStore>();
+        
+         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
+                    mySqlOptions => mySqlOptions.CommandTimeout(60)));
+
+        builder.Services.AddScoped<SharedUserStore>();  
+
         builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+            .AddInteractiveServerComponents(options => {
+                options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(3);
+            });
+
+        builder.Services.AddMudServices(config => {
+            config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
+            config.SnackbarConfiguration.PreventDuplicates = false;
+            config.SnackbarConfiguration.NewestOnTop = false;
+            config.SnackbarConfiguration.ShowCloseIcon = true;
+            config.SnackbarConfiguration.VisibleStateDuration = 3000;
+            config.SnackbarConfiguration.HideTransitionDuration = 200;
+            config.SnackbarConfiguration.ShowTransitionDuration = 200;
+            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+        });
 
         var app = builder.Build();
 
+        // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Error");
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 

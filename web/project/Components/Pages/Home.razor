@@ -1,518 +1,403 @@
 ﻿@page "/"
 @inject SharedUserStore UserStore
 @inject IEmailVerificationSender EmailSender
+@inject ISnackbar Snackbar
 
-<PageTitle>User dashboard</PageTitle>
+<PageTitle>User Panel</PageTitle>
 
 <div class="user-shell">
-	@if (!_isAuthenticated)
-	{
-		<section class="login-stage user-login-stage">
-			<div class="login-card user-login-card">
-				<p class="eyebrow">Accesso utente</p>
-				<h1>Dashboard IoT</h1>
-				<p class="lead">Entra con email e password, poi conferma il codice 2FA che ti arriva via mail.</p>
+    @if (!_isAuthenticated)
+    {
+        <section class="login-stage user-login-stage">
+            <div class="login-card user-login-card">
+                <p class="eyebrow"><i>Dalla parola al dato, tutto è connesso</i></p>
+                <h1>Dashboard</h1>
 
-				<div class="field-grid">
-					<label for="user-email">Email</label>
-					<input id="user-email" class="form-control" @bind-value="_login.Email" @bind-value:event="oninput" placeholder="mario@iot.local" />
+                <div class="field-grid">
+                    <label for="user-email">Email</label>
+                    <input id="user-email" class="form-control" @bind-value="_login.Email" @bind-value:event="oninput" placeholder="mario@iot.local" />
 
-					<label for="user-password">Password</label>
-					<input id="user-password" class="form-control" type="password" @bind-value="_login.Password" @bind-value:event="oninput" placeholder="Mario1234!" />
-				</div>
+                    <label for="user-password">Password</label>
+                    <input id="user-password" class="form-control" type="password" @bind-value="_login.Password" @bind-value:event="oninput" placeholder="Mario1234!" />
+                </div>
 
-				<div class="button-row">
-					<button type="button" class="primary-button" @onclick="RequestVerificationCode">Invia codice</button>
-					<span class="helper-text">Il codice arriva via email e non viene mostrato qui.</span>
-				</div>
+                <div class="button-row">
+                    <button type="button" class="primary-button" @onclick="RequestVerificationCode">Invia codice</button>
+                    <span class="helper-text">Il codice verrà inviato via email</span>
+                </div>
 
-				@if (!string.IsNullOrWhiteSpace(_loginMessage))
-				{
-					<div class="status-banner">@_loginMessage</div>
-				}
+                @if (_isVerificationStep)
+                {
+                    <div class="verification-card">
+                        <label for="verification-code">Codice verifica</label>
+                        <input id="verification-code" class="form-control" @bind-value="_verificationCodeInput" @bind-value:event="oninput" placeholder="000000" />
+                        <button type="button" class="secondary-button" @onclick="ConfirmVerificationCode">Conferma e accedi</button>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="dashboard-shell">
+            <aside class="sidebar-panel">
+                <div>
+                    <p class="eyebrow">Menu utente</p>
+                    <h1>@_currentAccount.FullName</h1>
+                    <p class="muted">@_currentAccount.Email</p>
+                </div>
 
-				@if (_isVerificationStep)
-				{
-					<div class="verification-card">
-						<label for="verification-code">Codice verifica</label>
-						<input id="verification-code" class="form-control" @bind-value="_verificationCodeInput" @bind-value:event="oninput" placeholder="000000" />
-						<button type="button" class="secondary-button" @onclick="ConfirmVerificationCode">Conferma e accedi</button>
-					</div>
-				}
-			</div>
-		</section>
-	}
-	else
-	{
-		<section class="dashboard-shell">
-			<aside class="sidebar-panel">
-				<div>
-					<p class="eyebrow">Menu utente</p>
-					<h1>@_currentAccount.FullName</h1>
-					<p class="muted">@_currentAccount.Email</p>
-				</div>
+                <nav class="sidebar-nav">
+                    <button type="button" class="sidebar-link @GetSectionClass(UserSection.Overview)" @onclick="() => SetSection(UserSection.Overview)">Grafici</button>
+                    <button type="button" class="sidebar-link @GetSectionClass(UserSection.Account)" @onclick="() => SetSection(UserSection.Account)">Account</button>
+                </nav>
+                <button type="button" class="logout-button" @onclick="Logout">Esci</button>
+            </aside>
 
-				<nav class="sidebar-nav">
-					<button type="button" class="sidebar-link @GetSectionClass(UserSection.Overview)" @onclick="() => SetSection(UserSection.Overview)">
-						Grafici
-					</button>
-					<button type="button" class="sidebar-link @GetSectionClass(UserSection.Categories)" @onclick="() => SetSection(UserSection.Categories)">
-						Categorie
-					</button>
-					<button type="button" class="sidebar-link @GetSectionClass(UserSection.Account)" @onclick="() => SetSection(UserSection.Account)">
-						Account
-					</button>
-				</nav>
+            <section class="dashboard-main">
+                <header class="dashboard-hero">
+                    <div>
+                        <p class="eyebrow">Benvenuto</p>
+                        <h2>Dashboard Sensori</h2>
+                        <p class="muted">Visualizzazione dati sensori in tempo reale.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <div class="pill">Profilo: @_currentAccount.Username</div>
+                    </div>
+                </header>
 
-				<div class="device-summary">
-					<span class="tag">Device associato</span>
-					<strong>@_currentAccount.DeviceName</strong>
-					<p>@_currentAccount.DeviceLocation</p>
-					<span class="status-dot online">@_currentAccount.DeviceStatus</span>
-				</div>
-			</aside>
+                @switch (_activeSection)
+                {
+                    case UserSection.Overview:
+                        @if (_isLoadingData)
+                        {
+                            <p class="muted">Caricamento dati...</p>
+                        }
+                        else
+                        {
+                            <section class="kpi-row">
+                                @foreach (var s in _sensors.Take(4))
+                                {
+                                    <article class="kpi-card metric-card">
+                                        <span>@s.Label</span>
+                                        <strong>@(s.HasValue ? $"{s.Value:F1} {s.Unit}" : "—")</strong>
+                                        <p>@(s.Timestamp.HasValue ? s.Timestamp.Value.ToString("HH:mm:ss") : "Nessuna lettura")</p>
+                                    </article>
+                                }
+                            </section>
 
-			<section class="dashboard-main">
-				<header class="dashboard-hero">
-					<div>
-						<p class="eyebrow">Benvenuto</p>
-						<h2>Dashboard operativa</h2>
-						<p class="muted">Qui l’utente visualizza i dati, filtra le categorie e aggiorna la password dell’account.</p>
-					</div>
+                            <section class="main-grid">
+                                <div class="chart-area">
+                                    <article class="big-chart chart-card">
+                                        <div class="card-heading">
+                                            <div>
+                                                <p class="eyebrow">Sensori</p>
+                                                <h3>Ultima lettura per sensore</h3>
+                                            </div>
+                                            <span class="tag">@_sensors.Count sensori</span>
+                                        </div>
 
-					<div class="hero-actions">
-						<div class="pill">Profilo: @_currentAccount.Username</div>
-					</div>
-				</header>
+                                        <div class="chart-list">
+                                            @foreach (var s in _sensors)
+                                            {
+                                                <div class="chart-row">
+                                                    <div class="chart-labels">
+                                                        <strong>@s.Label</strong>
+                                                        <span>@s.Type</span>
+                                                    </div>
+                                                    <div class="chart-track">
+                                                        <div class="chart-fill" style="width:@s.Percentage%"></div>
+                                                    </div>
+                                                    <div class="chart-value">
+                                                        @(s.HasValue ? $"{s.Value:F1} {s.Unit}" : "—")
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </article>
 
-				@switch (_activeSection)
-				{
-					case UserSection.Overview:
-						<section class="kpi-row">
-							<article class="kpi-card metric-card accent-teal">
-								<span>Temperatura media</span>
-								<strong>24.8 °C</strong>
-								<p>Stabile nelle ultime 24 ore.</p>
-							</article>
-							<article class="kpi-card metric-card accent-amber">
-								<span>Umidità</span>
-								<strong>61 %</strong>
-								<p>Entro soglia target.</p>
-							</article>
-							<article class="kpi-card metric-card accent-slate">
-								<span>Allarmi attivi</span>
-								<strong>2</strong>
-								<p>Uno in warning, uno in observability.</p>
-							</article>
-							<article class="kpi-card metric-card">
-								<span>Linee attive</span>
-								<strong>5/5</strong>
-								<p>Tutte operative</p>
-							</article>
-						</section>
+                                    <div class="bottom-grids">
+                                        <article class="table-card panel-card">
+                                            <div class="card-heading">
+                                                <div>
+                                                    <p class="eyebrow">Allarmi attivi</p>
+                                                    <h3>Ultime notifiche</h3>
+                                                </div>
+                                            </div>
+                                            <div class="stack-list">
+                                                @if (!_alerts.Any())
+                                                {
+                                                    <p class="muted">Nessun allarme attivo.</p>
+                                                }
+                                                @foreach (var alert in _alerts)
+                                                {
+                                                    <div class="stack-item">
+                                                        <div>
+                                                            <strong>@alert.SensorLabel</strong>
+                                                            <p class="muted">@alert.Message</p>
+                                                        </div>
+                                                        <span class="status-dot @(alert.Severity == "critical" ? "offline" : "neutral")">
+                                                            @alert.Severity
+                                                        </span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </article>
+                                    </div>
+                                </div>
 
-						<section class="main-grid">
-							<div class="chart-area">
-								<article class="big-chart chart-card">
-									<div class="card-heading">
-										<div>
-											<p class="eyebrow">Grafico</p>
-											<h3>Andamento sensori</h3>
-										</div>
-										<span class="tag">Ultime 6 letture</span>
-									</div>
+                                <aside class="right-column">
+                                    @foreach (var s in _sensors.Where(s => s.HasValue).Take(3))
+                                    {
+                                        <article class="metric-panel">
+                                            <div class="card-heading">
+                                                <div>
+                                                    <p class="eyebrow">@s.Type</p>
+                                                    <h3>@s.Label</h3>
+                                                </div>
+                                                <div class="metric-large">@($"{s.Value:F2} {s.Unit}")</div>
+                                            </div>
+                                            <div class="chart-track" style="margin-top:0.5rem;">
+                                                <div class="chart-fill" style="width:@s.Percentage%"></div>
+                                            </div>
+                                        </article>
+                                    }
+                                </aside>
+                            </section>
+                        }
+                        break;
 
-									<div class="chart-list">
-										@foreach (var point in _chartData)
-										{
-											<div class="chart-row">
-												<div class="chart-labels">
-													<strong>@point.Label</strong>
-													<span>@point.Detail</span>
-												</div>
-												<div class="chart-track">
-													<div class="chart-fill" style="width:@point.Percentage%"></div>
-												</div>
-												<div class="chart-value">@point.Value</div>
-											</div>
-										}
-									</div>
-								</article>
+                    case UserSection.Account:
+                        <section class="account-layout">
+                            <article class="panel-card account-card">
+                                <div class="card-heading">
+                                    <div>
+                                        <p class="eyebrow">Account</p>
+                                        <h3>Informazioni profilo</h3>
+                                    </div>
+                                </div>
+                                <dl class="account-dl">
+                                    <div><dt>Nome</dt><dd>@_currentAccount.FullName</dd></div>
+                                    <div><dt>Email</dt><dd>@_currentAccount.Email</dd></div>
+                                    <div><dt>Device</dt><dd>@_currentAccount.DeviceName</dd></div>
+                                </dl>
+                            </article>
 
-								<div class="bottom-grids">
-									<article class="table-card chart-card">
-										<div class="card-heading">
-											<div>
-												<p class="eyebrow">Storico</p>
-												<h3>Ultimi eventi</h3>
-											</div>
-										</div>
-										<div class="chart-list">
-											<!-- placeholder rows for history -->
-											@foreach (var point in _chartData.Take(4))
-											{
-												<div class="chart-row">
-													<div class="chart-labels">
-														<strong>@point.Label</strong>
-														<span>@point.Detail</span>
-													</div>
-													<div class="chart-track">
-														<div class="chart-fill" style="width:@point.Percentage%"></div>
-													</div>
-													<div class="chart-value">@point.Value</div>
-												</div>
-											}
-										</div>
-									</article>
-
-									<article class="table-card panel-card">
-										<div class="card-heading">
-											<div>
-												<p class="eyebrow">Attività</p>
-												<h3>Ultime notifiche</h3>
-											</div>
-										</div>
-										<div class="stack-list">
-											@foreach (var item in _deviceSignals)
-											{
-												<div class="stack-item">
-													<div>
-														<strong>@item.Name</strong>
-														<p class="muted">@item.Description</p>
-													</div>
-													<span class="status-dot @(item.IsGood ? "online" : "neutral")">@item.State</span>
-												</div>
-											}
-										</div>
-									</article>
-								</div>
-							</div>
-
-							<aside class="right-column">
-								<article class="metric-panel">
-									<div class="card-heading">
-										<div>
-											<p class="eyebrow">Temperatura</p>
-											<h3>Miscelatore A</h3>
-										</div>
-										<div class="metric-large">24.56°C</div>
-									</div>
-									<div class="chart-track" style="margin-top:0.5rem;">
-										<div class="chart-fill" style="width:64%"></div>
-									</div>
-								</article>
-
-								<article class="metric-panel">
-									<div class="card-heading">
-										<div>
-											<p class="eyebrow">Umidità</p>
-											<h3>Etichettatura</h3>
-										</div>
-										<div class="metric-large">79.26%</div>
-									</div>
-									<div class="chart-track" style="margin-top:0.5rem;">
-										<div class="chart-fill" style="width:79%"></div>
-									</div>
-								</article>
-
-								<article class="metric-panel">
-									<div class="card-heading">
-										<div>
-											<p class="eyebrow">Pressione</p>
-											<h3>Miscelatore B</h3>
-										</div>
-										<div class="metric-large">1.15 Bar</div>
-									</div>
-								</article>
-							</aside>
-						</section>
-						break;
-
-					case UserSection.Categories:
-						<section class="category-grid">
-							@foreach (var category in _categories)
-							{
-								<article class="category-card">
-									<span class="tag">@category.Group</span>
-									<h3>@category.Title</h3>
-									<p>@category.Description</p>
-									<strong>@category.Value</strong>
-								</article>
-							}
-						</section>
-						break;
-
-					case UserSection.Account:
-						<section class="account-layout">
-							<article class="panel-card account-card">
-								<div class="card-heading">
-									<div>
-										<p class="eyebrow">Account</p>
-										<h3>Informazioni profilo</h3>
-									</div>
-								</div>
-
-								<dl class="account-dl">
-									<div>
-										<dt>Nome</dt>
-										<dd>@_currentAccount.FullName</dd>
-									</div>
-									<div>
-										<dt>Email</dt>
-										<dd>@_currentAccount.Email</dd>
-									</div>
-									<div>
-										<dt>Device</dt>
-										<dd>@_currentAccount.DeviceName</dd>
-									</div>
-								</dl>
-							</article>
-
-							<article class="panel-card account-card">
-								<div class="card-heading">
-									<div>
-										<p class="eyebrow">Sicurezza</p>
-										<h3>Modifica password</h3>
-									</div>
-								</div>
-
-								<EditForm Model="_passwordForm" OnValidSubmit="UpdatePassword">
-									<DataAnnotationsValidator />
-									<ValidationSummary />
-
-									<div class="field-grid compact">
-										<label>Password attuale</label>
-										<InputText class="form-control" type="password" @bind-Value="_passwordForm.CurrentPassword" />
-
-										<label>Nuova password</label>
-										<InputText class="form-control" type="password" @bind-Value="_passwordForm.NewPassword" />
-
-										<label>Conferma password</label>
-										<InputText class="form-control" type="password" @bind-Value="_passwordForm.ConfirmPassword" />
-									</div>
-
-									<div class="button-row">
-										<button type="submit" class="primary-button">Aggiorna</button>
-									</div>
-								</EditForm>
-							</article>
-						</section>
-						break;
-				}
-
-				@if (!string.IsNullOrWhiteSpace(_toast))
-				{
-					<div class="toast-banner">@_toast</div>
-				}
-			</section>
-		</section>
-	}
+                            <article class="panel-card account-card">
+                                <div class="card-heading">
+                                    <div>
+                                        <p class="eyebrow">Sicurezza</p>
+                                        <h3>Modifica password</h3>
+                                    </div>
+                                </div>
+                                <EditForm Model="_passwordForm" OnValidSubmit="UpdatePassword">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+                                    <div class="field-grid compact">
+                                        <label>Password attuale</label>
+                                        <InputText class="form-control" type="password" @bind-Value="_passwordForm.CurrentPassword" />
+                                        <label>Nuova password</label>
+                                        <InputText class="form-control" type="password" @bind-Value="_passwordForm.NewPassword" />
+                                        <label>Conferma password</label>
+                                        <InputText class="form-control" type="password" @bind-Value="_passwordForm.ConfirmPassword" />
+                                    </div>
+                                    <div class="button-row">
+                                        <button type="submit" class="primary-button">Aggiorna</button>
+                                    </div>
+                                </EditForm>
+                            </article>
+                        </section>
+                        break;
+                }
+            </section>
+        </section>
+    }
 </div>
 
 @code {
-	private readonly LoginModel _login = new();
-	private readonly PasswordFormModel _passwordForm = new();
-	private List<DashboardAccount> _accounts = [];
-	private readonly List<ChartPoint> _chartData = new()
-	{
-		new ChartPoint("Temperatura", "Media stanza tecnica", 84, "24.8 °C"),
-		new ChartPoint("Umidità", "Comfort ambientale", 72, "61 %"),
-		new ChartPoint("Pressione", "Stabilità circuito", 68, "100.9 kPa"),
-		new ChartPoint("Gas", "Soglia sicurezza", 28, "0.21 ppm"),
-		new ChartPoint("Luce", "Esposizione ambiente", 56, "640 lux"),
-		new ChartPoint("Acqua", "Stato sensore flood", 12, "0 %")
-	};
-	private readonly List<SignalSummary> _deviceSignals = new()
-	{
-		new SignalSummary("ESP32 online", "Connessione stabile e dati recenti", true, "online"),
-		new SignalSummary("Sensori attivi", "Tutti i canali richiesti sono disponibili", true, "6 active"),
-		new SignalSummary("Backup cloud", "Ultimo sync completato da poco", true, "synced")
-	};
-	private readonly List<CategoryCard> _categories = new()
-	{
-		new CategoryCard("Environment", "Temperatura e umidità", "Focus sui dati microclimatici", "2 canali"),
-		new CategoryCard("Safety", "Gas e acqua", "Allarmi e soglie di sicurezza", "2 canali"),
-		new CategoryCard("Energy", "Luce e stato generale", "Visibilità e consumi in tempo reale", "2 canali")
-	};
+    private readonly LoginModel _login = new();
+    private readonly PasswordFormModel _passwordForm = new();
+    private List<DashboardAccount> _accounts = [];
+    private DashboardAccount _currentAccount = new();
+    private UserSection _activeSection = UserSection.Overview;
 
-	private DashboardAccount _currentAccount = new();
-	private UserSection _activeSection = UserSection.Overview;
-	private string _verificationCode = string.Empty;
-	private string _verificationCodeInput = string.Empty;
-	private string _loginMessage = string.Empty;
-	private string? _toast;
-	private bool _isAuthenticated;
-	private bool _isVerificationStep;
+    private List<SensorWithLatestReading> _sensors = [];
+    private List<AlertRecord> _alerts = [];
+    private bool _isLoadingData = false;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_accounts = await LoadAccountsAsync();
-		_currentAccount = _accounts.FirstOrDefault() ?? new DashboardAccount();
-		_verificationCode = string.Empty;
-	}
+    private string _verificationCode = string.Empty;
+    private string _verificationCodeInput = string.Empty;
+    private bool _isAuthenticated;
+    private bool _isVerificationStep;
 
-	private async Task RequestVerificationCode()
-	{
-		_accounts = await LoadAccountsAsync();
-		var account = _accounts.FirstOrDefault(item => string.Equals(item.Email, _login.Email.Trim(), StringComparison.OrdinalIgnoreCase));
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            _accounts = await LoadAccountsAsync();
+        } catch (Exception ex) {
+            Snackbar.Add($"Errore di connessione: {ex.Message}", Severity.Error);
+        }
+    }
 
-		if (account is null || !string.Equals(account.Password, _login.Password, StringComparison.Ordinal))
-		{
-			_loginMessage = "Credenziali non valide. Usa una delle email demo disponibili.";
-			_isVerificationStep = false;
-			return;
-		}
+    private async Task LoadDashboardDataAsync()
+    {
+        _isLoadingData = true;
+        try {
+            var record = await UserStore.FindByEmailAsync(_currentAccount.Email);
+            if (record is not null) {
+                _sensors = await UserStore.GetSensorReadingsAsync(record.Id);
+                _alerts  = await UserStore.GetActiveAlertsAsync(record.Id);
 
-		_currentAccount = account;
-		_verificationCode = Random.Shared.Next(100000, 999999).ToString();
-		_verificationCodeInput = string.Empty;
+                if (_alerts.Any())
+                    Snackbar.Add($"{_alerts.Count} allarme/i attivo/i sul tuo device.", Severity.Warning);
+            }
+        } catch (Exception ex) {
+            Snackbar.Add($"Errore caricamento dati: {ex.Message}", Severity.Error);
+        } finally {
+            _isLoadingData = false;
+        }
+    }
 
-		try
-		{
-			await EmailSender.SendVerificationCodeAsync(_currentAccount.Email, _currentAccount.FullName, _verificationCode);
-			_isVerificationStep = true;
-			_loginMessage = $"Ti ho inviato un codice di verifica a {_currentAccount.Email}.";
-		}
-		catch (Exception ex)
-		{
-			_isVerificationStep = false;
-			_loginMessage = $"Invio email non riuscito: {ex.Message}";
-		}
-	}
+    private async Task RequestVerificationCode()
+    {
+        try {
+            _accounts = await LoadAccountsAsync();
 
-	private void ConfirmVerificationCode()
-	{
-		if (!_isVerificationStep)
-		{
-			return;
-		}
+            var account = _accounts.FirstOrDefault(item =>
+                string.Equals(item.Email, _login.Email.Trim(), StringComparison.OrdinalIgnoreCase));
 
-		if (!string.Equals(_verificationCodeInput.Trim(), _verificationCode, StringComparison.Ordinal))
-		{
-			_loginMessage = "Codice non corretto.";
-			return;
-		}
+            var passwordValid = account is not null && (
+                account.Password.StartsWith("$2")
+                    ? BCrypt.Net.BCrypt.Verify(_login.Password, account.Password)
+                    : account.Password == _login.Password
+            );
 
-		_isAuthenticated = true;
-		_toast = $"Benvenuto {_currentAccount.FullName}.";
-		_loginMessage = string.Empty;
-		_isVerificationStep = false;
-	}
+            if (!passwordValid) {
+                Snackbar.Add("Credenziali non valide.", Severity.Error);
+                _isVerificationStep = false;
+                return;
+            }
 
-	private void SetSection(UserSection section)
-	{
-		_activeSection = section;
-	}
+            _currentAccount = account;
+            _verificationCode = Random.Shared.Next(100000, 999999).ToString();
+            _verificationCodeInput = string.Empty;
 
-	private string GetSectionClass(UserSection section) => _activeSection == section ? "is-active" : string.Empty;
+            await EmailSender.SendVerificationCodeAsync(_currentAccount.Email, _currentAccount.FullName, _verificationCode);
+            _isVerificationStep = true;
+            Snackbar.Add($"Codice inviato a {_currentAccount.Email}.", Severity.Info);
 
-	private async Task UpdatePassword()
-	{
-		if (!string.Equals(_passwordForm.CurrentPassword, _currentAccount.Password, StringComparison.Ordinal))
-		{
-			_toast = "La password attuale non è corretta.";
-			return;
-		}
+        } catch (Exception ex) {
+            _isVerificationStep = false;
+            Snackbar.Add($"Errore: {ex.Message}", Severity.Error);
+        }
+    }
 
-		if (_passwordForm.NewPassword != _passwordForm.ConfirmPassword)
-		{
-			_toast = "Le nuove password non coincidono.";
-			return;
-		}
+    private async Task ConfirmVerificationCode()
+    {
+        if (!_isVerificationStep) return;
 
-		_currentAccount.Password = _passwordForm.NewPassword;
-		await UserStore.UpsertAsync(MapToRecord(_currentAccount));
-		_accounts = await LoadAccountsAsync();
-		_passwordForm.CurrentPassword = string.Empty;
-		_passwordForm.NewPassword = string.Empty;
-		_passwordForm.ConfirmPassword = string.Empty;
-		_toast = "Password aggiornata con successo.";
-	}
+        if (!string.Equals(_verificationCodeInput.Trim(), _verificationCode, StringComparison.Ordinal)) {
+            Snackbar.Add("Codice non corretto.", Severity.Error);
+            return;
+        }
 
-	private async Task<List<DashboardAccount>> LoadAccountsAsync()
-	{
-		var records = await UserStore.GetAllAsync();
-		return records
-			.Select(MapFromRecord)
-			.OrderBy(account => account.Username)
-			.ToList();
-	}
+        _isAuthenticated = true;
+        _isVerificationStep = false;
+        Snackbar.Add($"Benvenuto {_currentAccount.FullName}.", Severity.Success);
+        await LoadDashboardDataAsync();
+        StateHasChanged();
+    }
 
-	private static DashboardAccount MapFromRecord(SharedUserRecord record) => new()
-	{
-		Username = record.Username,
-		FullName = record.FullName,
-		Email = record.Email,
-		Password = record.Password,
-		DeviceName = record.DeviceName,
-		DeviceLocation = record.DeviceLocation,
-		DeviceStatus = record.DeviceStatus
-	};
+    private void SetSection(UserSection section) => _activeSection = section;
+    private string GetSectionClass(UserSection section) => _activeSection == section ? "is-active" : string.Empty;
 
-	private static SharedUserRecord MapToRecord(DashboardAccount account) => new()
-	{
-		Id = 0,
-		Username = account.Username,
-		FullName = account.FullName,
-		Email = account.Email,
-		Password = account.Password,
-		Role = account.Role,
-		Verified = account.Verified,
-		DeviceName = account.DeviceName,
-		DeviceLocation = account.DeviceLocation,
-		DeviceSerialId = account.DeviceSerialId,
-		DeviceStatus = account.DeviceStatus
-	};
+    private async Task UpdatePassword()
+    {
+        try {
+            var currentValid = _currentAccount.Password.StartsWith("$2")
+                ? BCrypt.Net.BCrypt.Verify(_passwordForm.CurrentPassword, _currentAccount.Password)
+                : _currentAccount.Password == _passwordForm.CurrentPassword;
 
-	private sealed class LoginModel
-	{
-		public string Email { get; set; } = string.Empty;
+            if (!currentValid) {
+                Snackbar.Add("La password attuale non è corretta.", Severity.Error);
+                return;
+            }
 
-		public string Password { get; set; } = string.Empty;
-	}
+            _currentAccount.Password = BCrypt.Net.BCrypt.HashPassword(_passwordForm.NewPassword);
+            await UserStore.UpsertAsync(MapToRecord(_currentAccount));
+            _accounts = await LoadAccountsAsync();
 
-	private sealed class PasswordFormModel
-	{
-		public string CurrentPassword { get; set; } = string.Empty;
+            _passwordForm.CurrentPassword = string.Empty;
+            _passwordForm.NewPassword = string.Empty;
+            _passwordForm.ConfirmPassword = string.Empty;
 
-		public string NewPassword { get; set; } = string.Empty;
+            Snackbar.Add("Password aggiornata con successo.", Severity.Success);
+        } catch (Exception ex) {
+            Snackbar.Add($"Errore: {ex.Message}", Severity.Error);
+        }
+    }
 
-		public string ConfirmPassword { get; set; } = string.Empty;
-	}
+    private async Task<List<DashboardAccount>> LoadAccountsAsync()
+    {
+        var records = await UserStore.GetAllAsync();
+        return records.Select(MapFromRecord).OrderBy(a => a.Username).ToList();
+    }
 
-	private sealed class DashboardAccount
-	{
-		public string Username { get; set; } = string.Empty;
+    private static DashboardAccount MapFromRecord(SharedUserRecord r) => new() {
+        Id = r.Id,
+        Username = r.Username,
+        FullName = r.FullName,
+        Email = r.Email,
+        Password = r.Password,
+        DeviceName = r.DeviceName,
+        DeviceLocation = r.DeviceLocation,
+        DeviceStatus = r.DeviceStatus
+    };
 
-		public string FullName { get; set; } = string.Empty;
+    private static SharedUserRecord MapToRecord(DashboardAccount a) => new() {
+        Id = a.Id,
+        Username = a.Username,
+        FullName = a.FullName,
+        Email = a.Email,
+        Password = a.Password,
+        DeviceName = a.DeviceName,
+        DeviceLocation = a.DeviceLocation,
+        DeviceStatus = a.DeviceStatus
+    };
 
-		public string Email { get; set; } = string.Empty;
+    private sealed class LoginModel {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
 
-		public string Password { get; set; } = string.Empty;
+    private sealed class PasswordFormModel {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 
-		public string DeviceName { get; set; } = string.Empty;
+    private sealed class DashboardAccount {
+        public int Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string DeviceName { get; set; } = string.Empty;
+        public string DeviceLocation { get; set; } = string.Empty;
+        public string DeviceStatus { get; set; } = string.Empty;
+    }
 
-		public string DeviceLocation { get; set; } = string.Empty;
+    private enum UserSection { Overview, Account }
 
-		public string DeviceStatus { get; set; } = string.Empty;
-
-		public string Role { get; set; } = string.Empty;
-
-		public bool Verified { get; set; }
-
-		public string DeviceSerialId { get; set; } = string.Empty;
-	}
-
-	private sealed record ChartPoint(string Label, string Detail, int Percentage, string Value);
-
-	private sealed record SignalSummary(string Name, string Description, bool IsGood, string State);
-
-	private sealed record CategoryCard(string Group, string Title, string Description, string Value);
-
-	private enum UserSection
-	{
-		Overview,
-		Categories,
-		Account
-	}
+    private void Logout()
+    {
+        _isAuthenticated = false;
+        _isVerificationStep = false;
+        _currentAccount = new DashboardAccount();
+        _sensors = [];
+        _alerts = [];
+        _login.Email = string.Empty;
+        _login.Password = string.Empty;
+        Snackbar.Add("Disconnesso con successo.", Severity.Info);
+    }
 }

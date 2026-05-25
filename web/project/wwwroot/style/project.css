@@ -546,3 +546,70 @@ table.data-table th{color:var(--muted);font-size:0.82rem;font-weight:600}
 .blazor-error-boundary::after {
     content: "An error has occurred.";
 }
+
+
+
+#components-reconnect-modal {
+    display: none !important;
+}
+
+/* Sensori — più spazio tra le righe */
+.chart-list {
+    gap: 1.4rem;
+    margin-top: 1rem;
+}
+
+.chart-row {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.chart-labels {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.chart-labels strong {
+    font-size: 0.95rem;
+}
+
+.chart-labels span {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+/* Device summary — più arioso */
+.device-summary {
+    gap: 0.75rem;
+    padding: 1.25rem;
+}
+
+.device-summary strong {
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+}
+
+.device-summary p {
+    margin: 0;
+    font-size: 0.88rem;
+}
+
+/* Logout button */
+.logout-button {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.7rem 1.1rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    background: rgba(255, 80, 80, 0.08);
+    color: #ff8080;
+    border: 1px solid rgba(255, 80, 80, 0.16);
+    transition: background 160ms ease, transform 160ms ease;
+    width: 100%;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background: rgba(255, 80, 80, 0.16);
+    transform: translateY(-1px);
+}

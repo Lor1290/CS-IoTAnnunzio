@@ -2,23 +2,22 @@ name: Wokwi Simulation → Database
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # ogni 10 minuti
-  workflow_dispatch:         # trigger manuale da GitHub UI
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
 
 jobs:
   simulate:
     runs-on: ubuntu-latest
-    timeout-minutes: 8       # termina prima che riparta il cronometro
+    timeout-minutes: 8
 
     env:
-      MYSQLHOST:      ${{ secrets.MYSQLHOST }}
-      MYSQLPORT:      ${{ secrets.MYSQLPORT }}
-      MYSQLDATABASE:  ${{ secrets.MYSQLDATABASE }}
-      MYSQLUSER:      ${{ secrets.MYSQLUSER }}
-      MYSQLPASSWORD:  ${{ secrets.MYSQLPASSWORD }}
+      MYSQLHOST:     ${{ secrets.MYSQLHOST }}
+      MYSQLPORT:     ${{ secrets.MYSQLPORT }}
+      MYSQLDATABASE: ${{ secrets.MYSQLDATABASE }}
+      MYSQLUSER:     ${{ secrets.MYSQLUSER }}
+      MYSQLPASSWORD: ${{ secrets.MYSQLPASSWORD }}
       WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
-      
-      ESP32_SERIAL_ID: ESP32-001
+      ESP32_DEVICE_NAME: "ESP32-POLI"
 
     steps:
       - name: Checkout Repository
@@ -39,11 +38,10 @@ jobs:
           curl -L https://wokwi.com/ci/install.sh | sh
           echo "$HOME/.wokwi/bin" >> $GITHUB_PATH
 
-
       - name: Run scenario-full-day
         working-directory: esp32/wokwi
         run: wokwi-cli --timeout 90000 --scenario scenario-full-day.yaml . | python3 write-db.py
-        continue-on-error: true   
+        continue-on-error: true
 
       - name: Run scenario-flood-alert
         working-directory: esp32/wokwi
