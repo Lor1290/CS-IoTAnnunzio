@@ -13,7 +13,7 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserEntity>(e => {
-            e.ToTable("USERS");
+            e.ToTable("users");
             e.HasKey(u => u.Id);
             e.Property(u => u.Id).HasColumnName("id");
             e.Property(u => u.Username).HasColumnName("username");
@@ -27,7 +27,7 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<DeviceEntity>(e => {
-            e.ToTable("DEVICES");
+            e.ToTable("devices");
             e.HasKey(d => d.Id);
             e.Property(d => d.Id).HasColumnName("id");
             e.Property(d => d.UserId).HasColumnName("user_id");
@@ -42,7 +42,7 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<SensorEntity>(e => {
-            e.ToTable("SENSORS");
+            e.ToTable("sensors");
             e.HasKey(s => s.Id);
             e.Property(s => s.Id).HasColumnName("id");
             e.Property(s => s.DeviceId).HasColumnName("device_id");
