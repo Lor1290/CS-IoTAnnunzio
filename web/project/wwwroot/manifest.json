@@ -1,5 +1,5 @@
 {
-  "name": "Dashboard Sensori",
+  "name": "User Dashboard",
   "short_name": "Dashboard",
   "start_url": "/",
   "display": "standalone",
