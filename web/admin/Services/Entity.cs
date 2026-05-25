@@ -82,6 +82,6 @@ public class SensorEntity {
     [Column("max_threshold")]
     public decimal? MaxThreshold { get; set; }
 
-    [ForeignKey("DeviceId")]    
+    [InverseProperty("User")]
     public DeviceEntity? Device { get; set; }
 }
