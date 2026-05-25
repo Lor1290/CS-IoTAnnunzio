@@ -24,6 +24,7 @@ public class UserEntity {
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [InverseProperty("User")]
     public DeviceEntity? Device { get; set; }
 }
 
@@ -54,7 +55,7 @@ public class DeviceEntity {
     [ForeignKey("UserId")]
     public UserEntity? User { get; set; }
 
-    [InverseProperty("Device")] 
+    [InverseProperty("Device")]
     public List<SensorEntity> Sensors { get; set; } = [];
 }
 
@@ -82,6 +83,7 @@ public class SensorEntity {
     [Column("max_threshold")]
     public decimal? MaxThreshold { get; set; }
 
-    [InverseProperty("User")]
+    [ForeignKey("DeviceId")]
+    [InverseProperty("Sensors")]
     public DeviceEntity? Device { get; set; }
 }
