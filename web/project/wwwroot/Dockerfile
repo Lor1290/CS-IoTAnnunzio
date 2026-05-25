@@ -10,4 +10,5 @@ RUN dotnet publish -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+ENV ASPNETCORE_URLS=http://+:8080
 ENTRYPOINT ["dotnet", "project.dll"]

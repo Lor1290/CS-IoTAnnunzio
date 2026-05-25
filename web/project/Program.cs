@@ -4,7 +4,6 @@ using project.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
-
 using MudBlazor;
 using MudBlazor.Services;
 
@@ -16,14 +15,17 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
         // Add services to the container.
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
         builder.Services.AddSingleton<IEmailVerificationSender, EmailVerificationSender>();
         
-         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
-                    mySqlOptions => mySqlOptions.CommandTimeout(60)));
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
+                mySqlOptions => mySqlOptions.CommandTimeout(60)));
 
         builder.Services.AddScoped<SharedUserStore>();  
 
@@ -52,7 +54,6 @@ public class Program
         }
 
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-        // app.UseHttpsRedirection();
 
         app.UseAntiforgery();
 
