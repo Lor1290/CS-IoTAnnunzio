@@ -1,5 +1,5 @@
-using System.Net;
-using System.Net.Mail;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 
 namespace project.Services;
@@ -10,26 +10,21 @@ public interface IEmailVerificationSender {
 
 public sealed class EmailVerificationSender : IEmailVerificationSender {
     private readonly EmailSettings _settings;
+    private readonly HttpClient _http;
 
     public EmailVerificationSender(IOptions<EmailSettings> settings) {
         _settings = settings.Value;
+        _http = new HttpClient();
+        _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.Password}");
     }
 
     public async Task SendVerificationCodeAsync(string toEmail, string toName, string verificationCode) {
-        ValidateSettings();
+        var payload = new {
+            from = $"{_settings.FromName} <{_settings.FromAddress}>",
+            to = new[] { toEmail },
+            subject = "Codice di verifica accesso",
+            text = $@"Ciao {toName},
 
-        try {
-            using var client = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort) {
-                UseDefaultCredentials = false,
-                EnableSsl = _settings.EnableSsl,
-                Credentials = new NetworkCredential(_settings.Username, _settings.Password)
-            };
-
-            using var message = new MailMessage {
-                From = new MailAddress(_settings.FromAddress, _settings.FromName),
-                Subject = "Codice di verifica accesso",
-                Body = $@"
-Ciao {toName},
 bentornato nella tua Dashboard Sensori 👋
 Ecco il tuo codice di verifica:
 
@@ -39,43 +34,18 @@ Inseriscilo nella pagina di accesso per entrare.
 Il codice è valido per questa sessione soltanto.
 Se non hai richiesto l'accesso, ignora pure questa email.
 
-— Il team IoT Annunzio",
-                IsBodyHtml = false
-            };
+— Il team IoT Annunzio"
+        };
 
-            message.To.Add(toEmail);
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            await client.SendMailAsync(message);
-        } catch (SmtpException ex) {
-            if (ex.Message.Contains("5.7.0", StringComparison.OrdinalIgnoreCase) ||
-                ex.Message.Contains("Authentication Required", StringComparison.OrdinalIgnoreCase)) {
-                throw new InvalidOperationException("Gmail ha rifiutato l'autenticazione. Usa una app password Google, non la password normale dell'account, e verifica che l'account abbia la verifica in due passaggi attiva.", ex);
-            }
+        var response = await _http.PostAsync("https://api.resend.com/emails", content);
 
-            throw new InvalidOperationException($"Invio email fallito su {_settings.SmtpHost}:{_settings.SmtpPort}. {ex.Message}", ex);
+        if (!response.IsSuccessStatusCode) {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Resend API error {response.StatusCode}: {error}");
         }
-    }
-
-    private void ValidateSettings() {
-        if (string.IsNullOrWhiteSpace(_settings.SmtpHost) ||
-            string.IsNullOrWhiteSpace(_settings.Username) ||
-            string.IsNullOrWhiteSpace(_settings.Password) ||
-            string.IsNullOrWhiteSpace(_settings.FromAddress)) {
-            throw new InvalidOperationException("SMTP non configurato. Compila la sezione Email in appsettings.json.");
-        }
-
-        if (IsPlaceholder(_settings.SmtpHost) ||
-            IsPlaceholder(_settings.Username) ||
-            IsPlaceholder(_settings.Password) ||
-            IsPlaceholder(_settings.FromAddress)) {
-            throw new InvalidOperationException("SMTP ancora configurato con valori segnaposto. Sostituisci smtp.example.com e gli altri campi nella sezione Email con valori reali.");
-        }
-    }
-
-    private static bool IsPlaceholder(string value) {
-        return value.Contains("example.com", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("your-", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("INSERISCI", StringComparison.OrdinalIgnoreCase);
     }
 }
 

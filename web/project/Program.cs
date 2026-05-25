@@ -19,8 +19,9 @@ public class Program
         builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
         // Add services to the container.
+        builder.Services.AddHttpClient();
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
-        builder.Services.AddSingleton<IEmailVerificationSender, EmailVerificationSender>();
+        builder.Services.AddScoped<IEmailVerificationSender, EmailVerificationSender>();
         
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -28,6 +29,8 @@ public class Program
                 mySqlOptions => mySqlOptions.CommandTimeout(60)));
 
         builder.Services.AddScoped<SharedUserStore>();  
+
+        
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents(options => {
